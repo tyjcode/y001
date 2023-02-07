@@ -1,4 +1,6 @@
 # y001
+https://tyjcode.github.io/y001/y001.html
+
 
 - POTA　サイトからアクティベーターの情報を取得
 - 60秒をおきにリロード
