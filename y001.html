@@ -72,8 +72,17 @@
 
         }
 
-        $("#jaactivators").text(jaactivators);
-        $("#activators").text(activators);
+        if (jaactivators == "") {
+            $("#jaactivators").text("none");
+        else {
+            $("#jaactivators").text(jaactivators);
+        }
+        f (activators == "") {
+            $("#activators").text("none");
+        else {
+            $("#activators").text(activators);
+        }
+        
         $("#table").append(rows);   
         });
     }
