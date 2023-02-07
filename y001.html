@@ -1,0 +1,106 @@
+<html>
+<head></head>
+<body>
+
+<p><span id="jaactivators"></span></p>
+<p><span id="activators"></span></p>
+
+<table id="table">
+    <thead>
+        <tr>
+        <th data-field="activator"><button OnClick=keyOnClick(this)>activator</button></th>
+        <th data-field="reference"><button OnClick=keyOnClick(this)>reference</button></th>
+        <th data-field="frequency"><button OnClick=keyOnClick(this)>frequency</button></th>
+        <th data-field="mode"><button OnClick=keyOnClick(this)>mode </button></th>
+        </tr>
+    </thead>
+</table>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+<script type="text/javascript">
+    console.log("begin");
+
+    var g_data = "";
+    reloadfortable();
+
+    const timer = 60000;
+    window.addEventListener('load',function(){
+        setInterval('location.reload()',timer);
+    });
+
+    console.log("End");
+
+//
+//
+//
+    function reloadfortable(){
+        $.getJSON("https://api.pota.app/spot/activator", function(data_json){
+
+        var rows = "";
+        var jaactivators = "";
+        var activators = "";
+
+        data_json.sort(function ( a, b ){
+            var r = 0;
+
+            if( a.activator > b.activator ){ r = -1; }
+            else { r = 1; }
+
+            return r;
+        });
+        g_data = data_json;
+
+        for (i = 0; i < data_json.length; i++) {
+            if (data_json[i]["mode"] == "FT8" || data_json[i]["mode"] == "FT4") {
+                activators += data_json[i]["activator"];
+                activators +=  ","; 
+                if (data_json[i]["reference"].substr(0,2) == "JA"){
+                    jaactivators += data_json[i]["activator"];
+                    jaactivators +=  ",";                    
+                }
+            }
+
+            rows += "<tr>";
+            rows = rows + "<td>" + data_json[i]["activator"] + "</td>";
+            rows = rows + "<td>" + data_json[i]["reference"] +" </td>";
+            rows = rows + "<td>" + data_json[i]["frequency"] + "</td>";
+            rows = rows + "<td>" + data_json[i]["mode"] + "</td>";
+            rows += "</tr>"; 
+
+        }
+
+        $("#jaactivators").text(jaactivators);
+        $("#activators").text(activators);
+        $("#table").append(rows);   
+        });
+    }
+
+    function keyOnClick(obj) {
+        var key = obj.innerText;
+
+        g_data.sort(function ( a, b ){
+            var r = 0;
+        
+            if( a[key] < b[key] ){ r = -1; }
+            else { r = 1; }
+
+            return r;
+        });
+        rewrite(g_data)
+    }
+
+    function rewrite(data_json) {
+        for (i = 0; i < data_json.length; i++) {
+            $("#table")[0].rows[i+1].cells[0].innerText = data_json[i]["activator"];
+            $("#table")[0].rows[i+1].cells[1].innerText =data_json[i]["reference"];
+            $("#table")[0].rows[i+1].cells[2].innerText =data_json[i]["frequency"];
+            $("#table")[0].rows[i+1].cells[3].innerText =data_json[i]["mode"];
+        }
+    }
+
+</script>
+
+</html>
