@@ -41,75 +41,78 @@
     function reloadfortable(){
         $.getJSON("https://api.pota.app/spot/activator", function(data_json){
 
-        var rows = "";
-        var jaactivators = "";
-        var activators = "";
+            var rows = "";
+            var jaactivators = "";
+            var activators = "";
 
-        data_json.sort(function ( a, b ) {
-            var r = 0;
+    
 
-            if( a.activator > b.activator ){ r = -1; }
-            else { r = 1; }
+            data_json.sort(function ( a, b ) {
+                var r = 0;
 
-            return r;
-        });
-        g_data = data_json;
+                if( a.activator > b.activator ){ r = -1; }
+                else { r = 1; }
 
-        for (i = 0; i < data_json.length; i++) {
-            if (data_json[i]["mode"] == "FT8" || data_json[i]["mode"] == "FT4") {
-                activators += data_json[i]["activator"];
-                activators +=  ","; 
-                if (data_json[i]["reference"].substr(0,2) == "JA"){
-                    jaactivators += data_json[i]["activator"];
-                    jaactivators +=  ",";                    
-                }
-            }
-
-            rows += "<tr>";
-            for ( j=0; j < table.tHead.rows[0].cells.length; j++) {
-                rows = rows + "<td>" + data_json[i][table.tHead.rows[0].cells[j].textContent] + "</td>";
-            }
-            rows += "</tr>"; 
-
-        }
-
-        if (jaactivators == "") {
-            $("#jaactivators").text("none");
-        } else {
-            $("#jaactivators").text(jaactivators);
-        }
-        if (activators == "") {
-            $("#activators").text("none");
-        } else {
-            $("#activators").text(activators);
-        }
-        
-        $("#table").append(rows); 
-
-        $.getJSON("https://tyjcode.github.io/y001/parks.json", function(name_json){
-            for (i = 0; i < data_json.length; i++) {
-                var value = data_json[i]["reference"];
-
-                var parks = name_json.filter(function(item, index){ 
-                                if (item.Reference == value ) return true; 
-                            }); 
-
-                var pref = "";
-                for( var j = 0; j < parks.length; j++ ){ 
-                    pref =  pref + parks[j].都道府県 + ", ";
-                    console.log( parks[j].Reference + ", " + parks[j].日本語名  + ", " + parks[j].都道府県 ); 
-                } 
-                pref = pref.slice(0,-1);
-
-                if (parks.length > 1) {
-                    data_json[i]["reference"] = parks[0].日本語名;
-                    data_json[i]["locationDesc"] = pref;
-                }
-            }
-            rewrite(data_json);
+                return r;
+            });
 
             g_data = data_json;
-        });      
+
+            for (i = 0; i < data_json.length; i++) {
+                if (data_json[i]["mode"] == "FT8" || data_json[i]["mode"] == "FT4") {
+                    activators += data_json[i]["activator"];
+                    activators +=  ","; 
+                    if (data_json[i]["reference"].substr(0,2) == "JA"){
+                        jaactivators += data_json[i]["activator"];
+                        jaactivators +=  ",";                    
+                    }
+                }
+
+                rows += "<tr>";
+                for ( j=0; j < table.tHead.rows[0].cells.length; j++) {
+                    rows = rows + "<td>" + data_json[i][table.tHead.rows[0].cells[j].textContent] + "</td>";
+                }
+                rows += "</tr>"; 
+
+            }
+
+            if (jaactivators == "") {
+                $("#jaactivators").text("none");
+            } else {
+                $("#jaactivators").text(jaactivators.slice(0,-1));
+            }
+            if (activators == "") {
+                $("#activators").text("none");
+            } else {
+                $("#activators").text(activators.slice(0,-1));
+            }
+            
+            $("#table").append(rows); 
+
+            $.getJSON("https://tyjcode.github.io/y001/parks.json", function(name_json){
+                for (i = 0; i < data_json.length; i++) {
+                    var value = data_json[i]["reference"];
+
+                    var parks = name_json.filter(function(item, index){ 
+                                    if (item.Reference == value ) return true; 
+                                }); 
+
+                    var pref = "";
+                    for( var j = 0; j < parks.length; j++ ){ 
+                        pref =  pref + parks[j].都道府県 + ",";
+                        console.log( parks[j].Reference + ", " + parks[j].日本語名  + ", " + parks[j].都道府県 ); 
+                    } 
+
+                    if (parks.length > 0) {
+                        data_json[i]["name"] = parks[0].日本語名;
+                        data_json[i]["locationDesc"] = pref.slice(0,-1);
+                    }
+                }
+                g_data = data_json;
+                rewrite(g_data)
+
+            }); 
+
         });
     }
 

@@ -21,15 +21,15 @@
 
         var pref = "";
         for( var i = 0; i < parks.length; i++ ){ 
-            pref =  pref + parks[i].都道府県 + ", ";
+            pref =  pref + parks[i].都道府県 + ",";
             console.log(parks[i].Reference + ", " + parks[i].日本語名  + ", " + parks[i].都道府県 ); 
         } 
-        pref1 = pref.slice(0,-1);
+        pref = pref.slice(0, -1);
 
         if (parks.length == 0) {
             console.log("none, none, none"); 
         } else {
-            console.log(parks[0].Reference + ", " + parks[0].日本語名  + ", " + pref1); 
+            console.log(parks[0].Reference + ", " + parks[0].日本語名  + ", " + pref); 
         }
 
     };
