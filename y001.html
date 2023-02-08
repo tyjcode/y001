@@ -11,7 +11,9 @@
         <th data-field="activator"><button OnClick=keyOnClick(this)>activator</button></th>
         <th data-field="reference"><button OnClick=keyOnClick(this)>reference</button></th>
         <th data-field="frequency"><button OnClick=keyOnClick(this)>frequency</button></th>
-        <th data-field="mode"><button OnClick=keyOnClick(this)>mode </button></th>
+        <th data-field="mode"><button OnClick=keyOnClick(this)>mode</button></th>
+        <th data-field="parkname"><button OnClick=keyOnClick(this)>name</button></th>
+        <th data-field="locationDesc"><button OnClick=keyOnClick(this)>locationDesc</button></th>
         </tr>
     </thead>
 </table>
@@ -25,11 +27,12 @@
 
     var g_data = "";
     reloadfortable();
+    findpark();
 
     const timer = 60000;
-    window.addEventListener('load',function(){
-        setInterval('location.reload()',timer);
-    });
+ //   window.addEventListener('load',function(){
+ //       setInterval('location.reload()',timer);
+ //   });
 
     console.log("End");
 
@@ -43,7 +46,7 @@
         var jaactivators = "";
         var activators = "";
 
-        data_json.sort(function ( a, b ){
+        data_json.sort(function ( a, b ) {
             var r = 0;
 
             if( a.activator > b.activator ){ r = -1; }
@@ -64,10 +67,9 @@
             }
 
             rows += "<tr>";
-            rows = rows + "<td>" + data_json[i]["activator"] + "</td>";
-            rows = rows + "<td>" + data_json[i]["reference"] +" </td>";
-            rows = rows + "<td>" + data_json[i]["frequency"] + "</td>";
-            rows = rows + "<td>" + data_json[i]["mode"] + "</td>";
+            for ( j=0; j < table.tHead.rows[0].cells.length; j++) {
+                rows = rows + "<td>" + data_json[i][table.tHead.rows[0].cells[j].textContent] + "</td>";
+            }
             rows += "</tr>"; 
 
         }
@@ -86,6 +88,38 @@
         $("#table").append(rows);   
         });
     }
+    function findpark(){
+        $.getJSON("https://tyjcode.github.io/y001/parks.json", function(name_json){
+            for (i = 0; i < g_data.length; i++) {
+                var value = g_data[i]["reference"];
+
+                var parks = name_json.filter(function(item, index){ 
+                                if (item.Reference == value ) return true; 
+                            }); 
+
+                var pref = "";
+                for( var j = 0; j < parks.length; j++ ){ 
+                    pref =  pref + parks[j].都道府県 + ", ";
+                    console.log(parks[j].Reference + ", " + parks[j].日本語名  + ", " + parks[j].都道府県 ); 
+                } 
+                pref = pref.slice(0,-1);
+
+                if (parks.length > 1) {
+                    g_data[i]["reference"] = parks[0].日本語名;
+                    g_data[i]["locationDesc"] = pref;
+                }
+
+
+                for ( j=0; j < table.tHead.rows[0].cells.length; j++) {
+                    $("#table")[0].rows[i+1].cells[j].innerText = data_json[i][table.tHead.rows[0].cells[j].textContent] ;
+            }
+        }  
+        rewrite(g_data);
+
+        });
+    }
+
+
 
     function keyOnClick(obj) {
         var key = obj.innerText;
@@ -95,18 +129,19 @@
         
             if( a[key] < b[key] ){ r = -1; }
             else { r = 1; }
-
             return r;
         });
+
+       
+    
         rewrite(g_data)
     }
 
     function rewrite(data_json) {
         for (i = 0; i < data_json.length; i++) {
-            $("#table")[0].rows[i+1].cells[0].innerText = data_json[i]["activator"];
-            $("#table")[0].rows[i+1].cells[1].innerText =data_json[i]["reference"];
-            $("#table")[0].rows[i+1].cells[2].innerText =data_json[i]["frequency"];
-            $("#table")[0].rows[i+1].cells[3].innerText =data_json[i]["mode"];
+            for ( j=0; j < table.tHead.rows[0].cells.length; j++) {
+                $("#table")[0].rows[i+1].cells[j].innerText = data_json[i][table.tHead.rows[0].cells[j].textContent] ;
+            }
         }
     }
 
