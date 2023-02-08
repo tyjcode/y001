@@ -28,10 +28,11 @@
     var g_data = "";
     reloadfortable();
 
-    const timer = 60000;
+    const timer = 10000;
     window.addEventListener('load',function(){
-        setInterval('location.reload()',timer);
-    });
+        // setInterval('location.reload()',timer);
+        setInterval('reloadfortable()',timer);
+    });    
 
     console.log("End");
 
@@ -44,6 +45,13 @@
             var rows = "";
             var jaactivators = "";
             var activators = "";
+
+            
+            $("#jaactivators").text("");
+            $("#activators").text("");
+            for ( i=table.rows.length-1; i > 0; i--) {
+                table.deleteRow(i); 
+            }
 
     
 
