@@ -25,13 +25,13 @@
 <script type="text/javascript">
     console.log("begin");
 
-    var g_data = reloadfortable();
-    g_data = findpark(g_data);
+    var g_data = "";
+    reloadfortable();
 
     const timer = 60000;
- //   window.addEventListener('load',function(){
- //       setInterval('location.reload()',timer);
- //   });
+    window.addEventListener('load',function(){
+        setInterval('location.reload()',timer);
+    });
 
     console.log("End");
 
@@ -84,12 +84,8 @@
             $("#activators").text(activators);
         }
         
-        $("#table").append(rows);  
-        
-        return data_json
-        });
-    }
-    function findpark(data_json){
+        $("#table").append(rows); 
+
         $.getJSON("https://tyjcode.github.io/y001/parks.json", function(name_json){
             for (i = 0; i < data_json.length; i++) {
                 var value = data_json[i]["reference"];
@@ -112,11 +108,10 @@
             }
             rewrite(data_json);
 
-            return data_json;
+            g_data = data_json;
+        });      
         });
     }
-
-
 
     function sortOnClick(obj) {
         var key = obj.innerText;
