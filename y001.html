@@ -119,15 +119,25 @@
     function sortOnClick(obj) {
         var key = obj.innerText;
 
-        g_data.sort(function ( a, b ){
-            var r = 0;
-        
-            if( a[key] < b[key] ){ r = -1; }
-            else { r = 1; }
-            return r;
-        });
+        if (key == "frequency") {
+            g_data.sort(function ( a, b ){
+                var r = 0;
+            
+                if( parseFloat(a[key]) < parseFloat(b[key]) ){ r = -1; }
+                else { r = 1; }
+                return r;
+            });    
 
-       
+        } else {
+            g_data.sort(function ( a, b ){
+                var r = 0;
+            
+                if( a[key] < b[key] ){ r = -1; }
+                else { r = 1; }
+                return r;
+            });
+
+        }
     
         rewrite(g_data)
     }
