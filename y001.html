@@ -28,6 +28,8 @@
     console.log("begin");
 
     var g_data = "";
+    var g_name = "";
+    loadparks();
     reloadfortable();
 
     const timer = 60000;
@@ -41,6 +43,34 @@
 //
 //
 //
+    function loadparks(){
+        $.getJSON("https://tyjcode.github.io/y001/parks.json", function(name_json){
+
+                g_parks = name_json;
+
+            }); 
+    }
+    function replaceparks(){
+        for (i = 0; i < g_data.length; i++) {
+            var value = g_data[i]["reference"];
+
+            var parks = g_parks.filter(function(item, index){ 
+                            if (item.Reference == value ) return true; 
+                        }); 
+
+            var pref = "";
+            for( var j = 0; j < parks.length; j++ ){ 
+                pref =  pref + parks[j].都道府県 + ",";
+                console.log( parks[j].Reference + ", " + parks[j].日本語名  + ", " + parks[j].都道府県 ); 
+            } 
+
+            if (parks.length > 0) {
+                g_data[i]["name"] = parks[0].日本語名;
+                g_data[i]["locationDesc"] = pref.slice(0,-1);
+            }
+        }
+    }
+
     function reloadfortable(){
         $.getJSON("https://api.pota.app/spot/activator", function(data_json){
 
@@ -99,29 +129,8 @@
             
             $("#table").append(rows); 
 
-            $.getJSON("https://tyjcode.github.io/y001/parks.json", function(name_json){
-                for (i = 0; i < data_json.length; i++) {
-                    var value = data_json[i]["reference"];
-
-                    var parks = name_json.filter(function(item, index){ 
-                                    if (item.Reference == value ) return true; 
-                                }); 
-
-                    var pref = "";
-                    for( var j = 0; j < parks.length; j++ ){ 
-                        pref =  pref + parks[j].都道府県 + ",";
-                        console.log( parks[j].Reference + ", " + parks[j].日本語名  + ", " + parks[j].都道府県 ); 
-                    } 
-
-                    if (parks.length > 0) {
-                        data_json[i]["name"] = parks[0].日本語名;
-                        data_json[i]["locationDesc"] = pref.slice(0,-1);
-                    }
-                }
-                g_data = data_json;
-                rewrite(g_data)
-
-            }); 
+            replaceparks();
+            rewrite(g_data);
 
         });
     }
