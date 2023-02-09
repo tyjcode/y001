@@ -90,7 +90,7 @@
             data_json.sort(function ( a, b ) {
                 var r = 0;
 
-                if( a.activator > b.activator ){ r = -1; }
+                if( a.activator < b.activator ){ r = -1; }
                 else { r = 1; }
 
                 return r;
