@@ -1,0 +1,245 @@
+
+<html>
+<head>
+    <title>Activators of POTA</title>
+</head>
+<body>
+
+<p><span id="jaactivators"></span></p>
+<p><span id="activators"></span></p>
+
+<table id="activatortable">
+    <thead>
+        <tr>
+        <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
+        <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
+        <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
+        <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
+        <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
+        <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
+        </tr>
+    </thead>
+</table>
+
+<p><span id="jaactivators‗max"></span></p>
+<p><span id="activators‗max"></span></p>
+<p><span id="list‗max"></span></p>
+
+</body>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+<script type="text/javascript">
+    console.log("begin");
+
+    var g_data = ""; // Activator情報
+    var g_name = ""; // 日本語の公園名
+    var g_jact_max = 0; // jaactivators‗max
+    var g_act_max = 0; // activators‗max
+    var g_list_max = 0; // list‗max
+    
+    // 初期情報の取得と表示
+    loadparks();
+    reloadfortable();
+
+    // １分毎に、Activator情報を更新
+    const timer = 60000;
+    window.addEventListener('load',function(){
+        // setInterval('location.reload()',timer);
+        setInterval('reloadfortable()',timer);
+    });    
+
+    console.log("End");
+
+//
+// loadparks
+//
+// 日本語の公園名取得
+//
+    function loadparks(){
+        $.getJSON("https://tyjcode.github.io/y001/parks.json", function(name_json){
+
+                g_name = name_json;
+
+            }); 
+    }
+//
+// replaceparks
+//
+// 日本語の公園名に置換え
+//
+    function replaceparks(){
+        for (i = 0; i < g_data.length; i++) {
+            var value = g_data[i]["reference"];
+
+            var parks = g_name.filter(function(item, index){ 
+                            if (item.Reference == value ) return true; 
+                        }); 
+
+            var pref = "";
+            for( var j = 0; j < parks.length; j++ ){ 
+                pref =  pref + parks[j].都道府県 + ",";
+                console.log( parks[j].Reference + ", " + parks[j].日本語名  + ", " + parks[j].都道府県 ); 
+            } 
+
+            if (parks.length > 0) {
+                g_data[i]["name"] = parks[0].日本語名;
+                g_data[i]["locationDesc"] = pref.slice(0,-1);
+            }
+        }
+    }
+
+//
+// reloadfortable
+//
+// 一覧、ーブルに記載
+//
+    function reloadfortable(){
+        $.getJSON("https://api.pota.app/spot/activator", function(data_json){
+
+            var rows = "";
+            var jaactivators = "";
+            var activators = "";
+
+            
+            // クリアー
+            $("#jaactivators").text("");
+            $("#activators").text("");
+            for ( i=activatortable.rows.length-1; i > 0; i--) {
+                activatortable.deleteRow(i); 
+            }
+
+            // ソート
+            data_json.sort(function ( a, b ) {
+                var r = 0;
+
+                if( a.frequency < b.frequency ){ r = -1; } // frequency 昇順
+                else { r = 1; }
+
+                return r;
+            });
+            data_json.sort(function ( a, b ) {
+                var r = 0;
+
+                if( a.mode < b.mode ){ r = -1; } // mode 昇順
+                else { r = 1; }
+
+                return r;
+            });
+            data_json.sort(function ( a, b ) {
+                var r = 0;
+
+                if( a.activator < b.activator ){ r = -1; } // activator 昇順
+                else { r = 1; }
+
+                return r;
+            });
+
+            for (i = 0; i < data_json.length; i++) {
+
+                // QRT のコールサインを変更
+                if (data_json[i]["comments"].toUpperCase().includes("QRT")) {
+                    data_json[i]["activator"] = "＞" + data_json[i]["activator"];
+                } else {
+                    // JTDX 用の一覧 
+                    if (data_json[i]["mode"] == "FT8" || data_json[i]["mode"] == "FT4") {
+                        activators += data_json[i]["activator"];
+                        activators +=  ","; 
+                        if (data_json[i]["reference"].substr(0,2) == "JA"){
+                            jaactivators += data_json[i]["activator"];
+                            jaactivators +=  ",";                    
+                        }
+                    }
+                }
+
+                // テーブル 用の行
+                rows += "<tr>";
+                for ( j=0; j < activatortable.tHead.rows[0].cells.length; j++) {
+                    rows = rows + "<td>" + data_json[i][activatortable.tHead.rows[0].cells[j].textContent] + "</td>";
+                }
+                rows += "</tr>"; 
+
+            }
+
+            // ページへの書込み
+            if (jaactivators == "") {
+                $("#jaactivators").text("none");
+            } else {
+                $("#jaactivators").text(jaactivators.slice(0,-1));
+            }
+            if (activators == "") {
+                $("#activators").text("none");
+            } else {
+                $("#activators").text(activators.slice(0,-1));
+            }
+            $("#activatortable").append(rows); 
+
+
+            data_json.sort(function ( a, b ) {
+                var r = 0;
+
+                if( a.activator < b.activator ){ r = -1; } // activator 昇順
+                else { r = 1; }
+
+                return r;
+            });
+
+            // グローバル変数を作成
+            g_data = data_json;
+
+            // 日本語名へ置換え
+            replaceparks();
+            
+            // テーブルを再書込み
+            rewrite(g_data);
+
+        });
+    }
+
+//
+// sortOnClick
+//
+// 並べ替え
+//
+    function sortOnClick(obj) {
+        var key = obj.innerText;
+
+        if (key == "frequency") {
+            g_data.sort(function ( a, b ){
+                var r = 0;
+            
+                if( parseFloat(a[key]) < parseFloat(b[key]) ){ r = -1; }
+                else { r = 1; }
+                return r;
+            });    
+
+        } else {
+            g_data.sort(function ( a, b ){
+                var r = 0;
+            
+                if( a[key] < b[key] ){ r = -1; }
+                else { r = 1; }
+                return r;
+            });
+
+        }
+    
+        rewrite(g_data)
+    }
+
+// rewrite
+//
+// 既存のテーブルを書き換え
+//
+    function rewrite(data_json) {
+        for (i = 0; i < data_json.length; i++) {
+            for ( j=0; j < activatortable.tHead.rows[0].cells.length; j++) {
+                $("#activatortable")[0].rows[i+1].cells[j].innerText = data_json[i][activatortable.tHead.rows[0].cells[j].textContent] ;
+            }
+        }
+    }
+
+</script>
+
+</html>
