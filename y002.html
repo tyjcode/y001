@@ -1,22 +1,21 @@
 
 <html>
 <head>
-    <title>Activators of POTA</title>
+    <title>FT8 FT4 Japan</title>
 </head>
 <body>
 
 <p><span id="jaactivators"></span></p>
-<p><span id="activators"></span></p>
 
 <table id="activatortable">
     <thead>
         <tr>
-        <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
-        <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
-        <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
-        <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
-        <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
-        <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
+            <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
+            <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
+            <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
+            <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
+            <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
+            <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
         </tr>
     </thead>
 </table>
@@ -101,16 +100,23 @@
             var rows = "";
             var jaactivators = "";
             var activators = "";
-
+            var jadata_json;
             
             // クリアー
             $("#jaactivators").text("");
-            $("#activators").text("");
             for ( i=activatortable.rows.length-1; i > 0; i--) {
                 activatortable.deleteRow(i); 
             }
 
             // ソート
+            data_json.sort(function ( a, b ) {
+                var r = 0;
+
+                if( a.activator < b.activator ){ r = -1; } // activator 昇順
+                else { r = 1; }
+
+                return r;
+            });
             data_json.sort(function ( a, b ) {
                 var r = 0;
 
@@ -127,39 +133,52 @@
 
                 return r;
             });
-            data_json.sort(function ( a, b ) {
-                var r = 0;
 
-                if( a.activator < b.activator ){ r = -1; } // activator 昇順
-                else { r = 1; }
-
-                return r;
+            var matchData = data_json.filter(function(item, index){
+                if (item.mode == "FT8" || item.mode == "CW" ) {
+                    if (item.reference.substr(0,2) == "JA") {
+                        return true;
+                    }
+                }
             });
-
+/*
+            //jadata_json = data_json;
             for (i = 0; i < data_json.length; i++) {
 
                 // QRT のコールサインを変更
                 if (data_json[i]["comments"].toUpperCase().includes("QRT")) {
-                    data_json[i]["activator"] = "＞" + data_json[i]["activator"];
+                    data_json[i]["mode"] = "＞" + data_json[i]["mode"];
                 } else {
                     // JTDX 用の一覧 
-                    if (data_json[i]["mode"] == "FT8" || data_json[i]["mode"] == "FT4") {
+                    if (data_json[i]["mode"] == "FT8" || data_json[i]["mode"] == "CW") {
                         activators += data_json[i]["activator"];
                         activators +=  ","; 
                         if (data_json[i]["reference"].substr(0,2) == "JA"){
                             jaactivators += data_json[i]["activator"];
-                            jaactivators +=  ",";                    
+                            jaactivators +=  ",";  
+
+                            jadata_json.push(data_json[i]); 
+                            
+
                         }
                     }
                 }
 
-                // テーブル 用の行
+            }
+            */
+
+            // テーブル 用の行
+            for (i = 0; i < matchData.length; i++) {
                 rows += "<tr>";
                 for ( j=0; j < activatortable.tHead.rows[0].cells.length; j++) {
-                    rows = rows + "<td>" + data_json[i][activatortable.tHead.rows[0].cells[j].textContent] + "</td>";
+
+                    rows = rows + "<td>" + matchData[i][activatortable.tHead.rows[0].cells[j].textContent] + "</td>";
                 }
+        
                 rows += "</tr>"; 
 
+                jaactivators += matchData[i]["activator"];                  
+                jaactivators +=  ",";  
             }
 
             // ページへの書込み
@@ -168,25 +187,11 @@
             } else {
                 $("#jaactivators").text(jaactivators.slice(0,-1));
             }
-            if (activators == "") {
-                $("#activators").text("none");
-            } else {
-                $("#activators").text(activators.slice(0,-1));
-            }
             $("#activatortable").append(rows); 
 
 
-            data_json.sort(function ( a, b ) {
-                var r = 0;
-
-                if( a.activator < b.activator ){ r = -1; } // activator 昇順
-                else { r = 1; }
-
-                return r;
-            });
-
             // グローバル変数を作成
-            g_data = data_json;
+            g_data = matchData;
 
             // 日本語名へ置換え
             replaceparks();
