@@ -195,9 +195,9 @@
 
             var matchData = data_json.filter(function(item, index){
                 if (item.mode == "FT8" || item.mode == "FT4" ) {
-                   // if (item.reference.substr(0,2) == "JA") {
+                    if (item.reference.substr(0,2) == "JA") {
                         return true;
-                    //}
+                    }
                 }
             });
 /*
