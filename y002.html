@@ -64,8 +64,8 @@
     </table>
     </p>
 -->
-<p><span id="fetc">FT8&FT4</span>
-    <table id="activatortable">
+<p><span id="fft8">FT8&FT4</span>
+    <table id="fft8table">
         <thead>
             <tr>
                 <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
@@ -78,6 +78,20 @@
         </thead>
     </table>
     </p>
+    <p><span id="fetc">etc</span>
+        <table id="fetctable">
+            <thead>
+                <tr>
+                    <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
+                    <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
+                    <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
+                    <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
+                    <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
+                    <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
+                </tr>
+            </thead>
+        </table>
+        </p>
 <p><span id="jaactivators‗max"></span></p>
 <p><span id="activators‗max"></span></p>
 <p><span id="list‗max"></span></p>
@@ -91,6 +105,7 @@
     console.log("begin");
 
     var g_data = ""; // Activator情報
+    var g_etcdata = "";
     var g_name = ""; // 日本語の公園名
     var g_jact_max = 0; // jaactivators‗max
     var g_act_max = 0; // activators‗max
@@ -125,10 +140,10 @@
 // replaceparks
 //
 // 日本語の公園名に置換え
-//
-    function replaceparks(){
-        for (i = 0; i < g_data.length; i++) {
-            var value = g_data[i]["reference"];
+//f
+    function replaceparks(data){
+        for (i = 0; i < data.length; i++) {
+            var value = data[i]["reference"];
 
             var parks = g_name.filter(function(item, index){ 
                             if (item.Reference == value ) return true; 
@@ -141,10 +156,12 @@
             } 
 
             if (parks.length > 0) {
-                g_data[i]["name"] = parks[0].日本語名;
-                g_data[i]["locationDesc"] = pref.slice(0,-1);
+                data[i]["name"] = parks[0].日本語名;
+                data[i]["locationDesc"] = pref.slice(0,-1);
             }
         }
+
+        return data;
     }
 
 //
@@ -156,16 +173,19 @@
         $.getJSON("https://api.pota.app/spot/activator", function(data_json){
 
             var rows = "";
+            var etcrows = "";
             var jaactivators = "";
             var activators = "";
             var jadata_json;
             
             // クリアー
             $("#jaactivators").text("");
-            for ( i=activatortable.rows.length-1; i > 0; i--) {
-                activatortable.deleteRow(i); 
+            for ( i=fft8table.rows.length-1; i > 0; i--) {
+                fft8table.deleteRow(i); 
             }
-
+            for ( i=fetctable.rows.length-1; i > 0; i--) {
+                fetctable.deleteRow(i); 
+            }
             // ソート
             data_json.sort(function ( a, b ) {
                 var r = 0;
@@ -200,6 +220,14 @@
                     }
                 }
             });
+
+            var etcData = data_json.filter(function(item, index){
+                if (item.mode != "FT8" && item.mode != "FT4" ) {
+                    if (item.reference.substr(0,2) == "JA") {
+                        return true;
+                    }
+                }
+            });
 /*
             //jadata_json = data_json;
             for (i = 0; i < data_json.length; i++) {
@@ -229,15 +257,22 @@
             // テーブル 用の行
             for (i = 0; i < matchData.length; i++) {
                 rows += "<tr>";
-                for ( j=0; j < activatortable.tHead.rows[0].cells.length; j++) {
+                for ( j=0; j < fft8table.tHead.rows[0].cells.length; j++) {
 
-                    rows = rows + "<td>" + matchData[i][activatortable.tHead.rows[0].cells[j].textContent] + "</td>";
+                    rows = rows + "<td>" + matchData[i][fft8table.tHead.rows[0].cells[j].textContent] + "</td>";
                 }
-        
                 rows += "</tr>"; 
 
                 jaactivators += matchData[i]["activator"];                  
                 jaactivators +=  ",";  
+            }
+            for (i = 0; i < etcData.length; i++) {
+                etcrows += "<tr>";
+                for ( j=0; j < fetctable.tHead.rows[0].cells.length; j++) {
+
+                    etcrows = etcrows + "<td>" + etcData[i][fft8table.tHead.rows[0].cells[j].textContent] + "</td>";
+                }
+                etcrows += "</tr>"; 
             }
 
             // ページへの書込み
@@ -246,17 +281,16 @@
             } else {
                 $("#jaactivators").text(jaactivators.slice(0,-1));
             }
-            $("#activatortable").append(rows); 
+            $("#fft8table").append(rows); 
+            $("#fetctable").append(etcrows); 
 
+               // 日本語名へ置換え
+            g_data = replaceparks(matchData);
+            g_etcdata = replaceparks(etcData);
 
-            // グローバル変数を作成
-            g_data = matchData;
-
-            // 日本語名へ置換え
-            replaceparks();
-            
             // テーブルを再書込み
-            rewrite(g_data);
+            rewrite(g_data, $("#fft8table"));
+            rewrite(g_etcdata, $("#fetctable"));
 
         });
     }
@@ -296,10 +330,10 @@
 //
 // 既存のテーブルを書き換え
 //
-    function rewrite(data_json) {
+    function rewrite(data_json, table) {
         for (i = 0; i < data_json.length; i++) {
-            for ( j=0; j < activatortable.tHead.rows[0].cells.length; j++) {
-                $("#activatortable")[0].rows[i+1].cells[j].innerText = data_json[i][activatortable.tHead.rows[0].cells[j].textContent] ;
+            for ( j=0; j < table[0].tHead.rows[0].cells.length; j++) {
+                table[0].rows[i+1].cells[j].innerText = data_json[i][table[0].tHead.rows[0].cells[j].textContent] ;
             }
         }
     }
