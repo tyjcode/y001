@@ -6,8 +6,9 @@
 <body>
 
 <p><span id="jaactivators"></span></p>
-
-<table id="activatortable">
+<!--
+<p><span id="f3523">  3.523</span>
+<table id="f3523table">
     <thead>
         <tr>
             <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
@@ -19,7 +20,64 @@
         </tr>
     </thead>
 </table>
-
+</p>
+<p><span id="f7041">  7.041</span>
+<table id="f3523table">
+    <thead>
+        <tr>
+            <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
+            <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
+            <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
+            <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
+            <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
+            <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
+        </tr>
+    </thead>
+</table>
+</p>
+<p><span id="f10136"> 10.136</span>
+<table id="f3523table">
+    <thead>
+        <tr>
+            <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
+            <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
+            <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
+            <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
+            <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
+            <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
+        </tr>
+    </thead>
+</table>
+</p>
+<p><span id="f14074"> 14.074</span>
+    <table id="f14074table">
+        <thead>
+            <tr>
+                <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
+                <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
+                <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
+                <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
+                <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
+                <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
+            </tr>
+        </thead>
+    </table>
+    </p>
+-->
+<p><span id="fetc">FT8&FT4</span>
+    <table id="activatortable">
+        <thead>
+            <tr>
+                <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
+                <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
+                <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
+                <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
+                <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
+                <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
+            </tr>
+        </thead>
+    </table>
+    </p>
 <p><span id="jaactivators‗max"></span></p>
 <p><span id="activators‗max"></span></p>
 <p><span id="list‗max"></span></p>
@@ -117,14 +175,7 @@
 
                 return r;
             });
-            data_json.sort(function ( a, b ) {
-                var r = 0;
 
-                if( a.frequency < b.frequency ){ r = -1; } // frequency 昇順
-                else { r = 1; }
-
-                return r;
-            });
             data_json.sort(function ( a, b ) {
                 var r = 0;
 
@@ -133,12 +184,20 @@
 
                 return r;
             });
+            data_json.sort(function ( a, b ) {
+                var r = 0;
+
+                if( parseFloat(a.frequency) < parseFloat(b.frequency) ){ r = -1; } // frequency 昇順
+                else { r = 1; }
+
+                return r;
+            });
 
             var matchData = data_json.filter(function(item, index){
-                if (item.mode == "FT8" || item.mode == "CW" ) {
-                    if (item.reference.substr(0,2) == "JA") {
+                if (item.mode == "FT8" || item.mode == "FT4" ) {
+                   // if (item.reference.substr(0,2) == "JA") {
                         return true;
-                    }
+                    //}
                 }
             });
 /*
