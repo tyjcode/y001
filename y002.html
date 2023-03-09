@@ -230,7 +230,14 @@
                 list = list + data[i].activator + ","
             }
         }
-        return list.slice(0,-1)
+        if (list == "")
+        {
+            return "none";
+        }
+        else
+        {
+            return list.slice(0,-1)
+        }
     }
     // MakeQrt
     //
