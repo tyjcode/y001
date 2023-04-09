@@ -1,0 +1,78 @@
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/table-to-json@1.0.0/lib/jquery.tabletojson.min.js"></script>
+
+<script type="text/javascript">
+    var name_json = "";
+
+    console.log("begin");
+        reloadfortable();
+    console.log("end");
+
+    function reloadfortable(){
+        $.getJSON("https://api.pota.app/program/parks/JA", function(data_json){
+
+            var parkurl = "";
+            var parkinfo = "";
+            var rows = "";
+
+            for (i = 0; i < data_json.length; i++) {
+                parkurl = "https://api.pota.app/park/" + data_json[i]['reference']
+                console.log(parkurl);
+                $.getJSON(parkurl, function(park_json){
+                    parkinfo = park_json['reference'] + "," + park_json['name'] + "," + park_json['parkComments'] + "," + park_json['locationDesc'] + "," + park_json['locationName'] 
+                    console.log( parkinfo);
+
+                    // テーブル 用の行
+                    rows = "<tr>";
+                    for ( j=0; j < nametable.tHead.rows[0].cells.length; j++) {
+                        rows = rows + "<td>" + park_json[nametable.tHead.rows[0].cells[j].textContent] + "</td>";
+                    }
+                    rows += "</tr>"; 
+                    $("#nametable").append(rows); 
+                });
+
+            };
+
+        });
+    }
+
+    function WriteToFile(data){
+        name_json = $('#nametable').tableToJSON();
+        let datastring = JSON.stringify(name_json);
+        let blob = new Blob([datastring],{type:"text/plan"});
+        let link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = '作ったファイル.json';
+        link.click();
+    }
+
+    //
+    // 全国公園リスト2022年6月版
+    // https://pota-jp.com/%E5%85%A8%E5%9B%BD%E5%85%AC%E5%9C%92%E3%83%AA%E3%82%B9%E3%83%882022%E5%B9%B46%E6%9C%88%E7%89%88/
+    // <table id="nametable">
+    //
+
+</script>
+
+<button type="button" onClick="WriteToFile(name_json)" >ファイル書き込み(json)</button>
+
+<table id="nametable">
+    <thead>
+        <tr>
+            <th data-override="reference">reference</th>
+            <th data-override="name">name</th>
+            <th data-override="日本語名">parkComments</th>
+            <th data-override="locationDesc">locationDesc</th>
+            <th data-override="locationName">locationName</th>
+            <th data-override="japanesename">japanesename</th>
+        </tr>					
+    </thead>
+    <tbody> 
+    </tbody>
+</table>
+
+    
