@@ -7,8 +7,10 @@
 
 <script type="text/javascript">
     var name_json = "";
+    var prefectures_json = "";
 
     console.log("begin");
+        loadprefectures();
         reloadfortable();
     console.log("end");
 
@@ -29,7 +31,30 @@
                     // テーブル 用の行
                     rows = "<tr>";
                     for ( j=0; j < nametable.tHead.rows[0].cells.length; j++) {
-                        rows = rows + "<td>" + park_json[nametable.tHead.rows[0].cells[j].textContent] + "</td>";
+                        if ( nametable.tHead.rows[0].cells[j].textContent != "japanesename" ) {
+                            rows = rows + "<td>" + park_json[nametable.tHead.rows[0].cells[j].textContent] + "</td>";
+                        } else {
+                            var locationDesc = park_json["locationDesc"] 
+                            var locations = locationDesc.split(",");
+                            var context = "";
+                            for(l=0; l<locations.length;l++) {
+
+
+                                var value = locations[l];
+                                var prefectures = prefectures_json.filter(function(item, index){ 
+                                    if (item.locationDesc == value ) return true;
+                                }); 
+
+
+                                context = context + prefectures[0]["都道府県名"] + ",";
+                             
+                            }
+                            context = context.slice(0,-1);
+                            rows = rows + "<td>" + context + "</td>";
+                        }
+
+                       
+
                     }
                     rows += "</tr>"; 
                     $("#nametable").append(rows); 
@@ -40,6 +65,11 @@
         });
     }
 
+    function loadprefectures(){
+        $.getJSON("https://tyjcode.github.io/y001/prefectures.json", function(data_json){
+            prefectures_json = data_json;
+        });
+    }
     function WriteToFile(data){
         name_json = $('#nametable').tableToJSON();
         let datastring = JSON.stringify(name_json);
