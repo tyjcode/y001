@@ -76,15 +76,17 @@
         let blob = new Blob([datastring],{type:"text/plan"});
         let link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = '作ったファイル.json';
+        link.download = 'parks-latest.json';
         link.click();
     }
 
-    //
-    // 全国公園リスト2022年6月版
-    // https://pota-jp.com/%E5%85%A8%E5%9B%BD%E5%85%AC%E5%9C%92%E3%83%AA%E3%82%B9%E3%83%882022%E5%B9%B46%E6%9C%88%E7%89%88/
-    // <table id="nametable">
-    //
+//
+// https://api.pota.app/program/parks/JA
+// https://api.pota.app/park/JA-0001
+// https://api.pota.app/park/JA-0007
+//
+// 47都道府県名の一覧表リスト https://list-ranking.com/list/todouhuken/
+//
 
 </script>
 
