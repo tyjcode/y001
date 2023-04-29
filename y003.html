@@ -52,12 +52,15 @@
     var g_data = ""; // Activator情報
     var g_etcdata = "";
     var g_name = ""; // 日本語の公園名
+    var g_qso = ""; // 日本語の公園名
+
     var g_jact_max = 0; // jaactivators‗max
     var g_act_max = 0; // activators‗max
     var g_list_max = 0; // list‗max
     
     // 初期情報の取得と表示
     loadparks();
+    loadqsos();
     reloadfortable();
 
     // １分毎に、Activator情報を更新
@@ -87,9 +90,9 @@
     // 交信情報取得
     //
     function loadqsos(){
-        $.getCSV("https://tyjcode.github.io/y001/hunter_parks.csv", function(name_json){
+        $.getJSON("https://tyjcode.github.io/y001/hunter_parks.json", function(name_json){
 
-                g_qsos = name_json;
+                g_qso = name_json;
 
             }); 
     }
@@ -105,7 +108,9 @@
             var parks = g_name.filter(function(item, index){ 
                             if (item.Reference == value ) return true; 
                         }); 
-
+            var qsos = g_qso.filter(function(item, index){ 
+                if (item.Reference == value ) return true; 
+            }); 
             var pref = "";
             for( var j = 0; j < parks.length; j++ ){ 
                 pref =  pref + parks[j].都道府県 + ",";
@@ -116,6 +121,7 @@
                 data[i]["name"] = parks[0].日本語名;
                 data[i]["locationDesc"] = pref.slice(0,-1);
             }
+            data[i]["QSOs"] = qsos[0].QSOs
         }
 
         return data;
