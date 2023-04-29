@@ -10,7 +10,7 @@
     var prefectures_json = "";
 
     console.log("begin");
-    csv_data('file:///G:/DATA/無線/アマチュア無線/FT8/tools/y001/hunter_parks.csv'); // csvのパス
+    csv_data('https://tyjcode.github.io/y001/hunter_parks.csv'); // csvのパス
     console.log("end");
 
     const output_csv = document.getElementById('color_list');
@@ -28,18 +28,25 @@
     function csv_array(data) {
         const dataArray = []; //配列を用意
         const dataString = data.split('\n'); //改行で分割
-        for (let i = 0; i < dataString.length; i++) { //あるだけループ
+
+        for (let i = 1; i < dataString.length; i++) { //あるだけループ
             dataArray[i] = dataString[i].split(',');
         }
+
         let insertElement = ''; //テーブルタグに表示する用の変数
         dataArray.forEach((element) => { //配列の中身を表示
             insertElement += '<tr>';
             element.forEach((childElement) => {
+                childElement = childElement.replace('"','')
+                childElement = childElement.replace('"','')
+                
                 insertElement += `<td>${childElement}</td>`
             });
             insertElement += '</tr>';
         });
-        output_csv.innerHTML = insertElement; // 表示
+        //output_csv.innerHTML = insertElement; // 表示
+
+        $("#qsotable").append(insertElement); 
     }
 
 
@@ -49,14 +56,11 @@
         let blob = new Blob([datastring],{type:"text/plan"});
         let link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = 'hunter_parks .json';
+        link.download = 'hunter_parks.json';
         link.click();
     }
 
 //
-// https://api.pota.app/program/parks/JA
-// https://api.pota.app/park/JA-0001
-// https://api.pota.app/park/JA-0007
 //
 // 47都道府県名の一覧表リスト https://list-ranking.com/list/todouhuken/
 //
