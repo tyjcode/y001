@@ -1,0 +1,82 @@
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/table-to-json@1.0.0/lib/jquery.tabletojson.min.js"></script>
+
+<script type="text/javascript">
+    var name_json = "";
+    var prefectures_json = "";
+
+    console.log("begin");
+    csv_data('file:///G:/DATA/無線/アマチュア無線/FT8/tools/y001/hunter_parks.csv'); // csvのパス
+    console.log("end");
+
+    const output_csv = document.getElementById('color_list');
+
+    function csv_data(dataPath) {
+        const request = new XMLHttpRequest(); // HTTPでファイルを読み込む
+        request.addEventListener('load', (event) => { // ロードさせ実行
+            const response = event.target.responseText; // 受け取ったテキストを返す
+            csv_array(response); //csv_arrayの関数を実行
+        });
+        request.open('GET', dataPath, true); // csvのパスを指定
+        request.send();
+    }
+
+    function csv_array(data) {
+        const dataArray = []; //配列を用意
+        const dataString = data.split('\n'); //改行で分割
+        for (let i = 0; i < dataString.length; i++) { //あるだけループ
+            dataArray[i] = dataString[i].split(',');
+        }
+        let insertElement = ''; //テーブルタグに表示する用の変数
+        dataArray.forEach((element) => { //配列の中身を表示
+            insertElement += '<tr>';
+            element.forEach((childElement) => {
+                insertElement += `<td>${childElement}</td>`
+            });
+            insertElement += '</tr>';
+        });
+        output_csv.innerHTML = insertElement; // 表示
+    }
+
+
+    function WriteToFile(data){
+        name_json = $('#qsotable').tableToJSON();
+        let datastring = JSON.stringify(name_json);
+        let blob = new Blob([datastring],{type:"text/plan"});
+        let link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'hunter_parks .json';
+        link.click();
+    }
+
+//
+// https://api.pota.app/program/parks/JA
+// https://api.pota.app/park/JA-0001
+// https://api.pota.app/park/JA-0007
+//
+// 47都道府県名の一覧表リスト https://list-ranking.com/list/todouhuken/
+//
+
+</script>
+
+<button type="button" onClick="WriteToFile(name_json)" >ファイル書き込み(json)</button>
+
+<table id="qsotable">
+    <thead>
+        <tr>
+            <th data-override="DX Entity">DX Entity</th>
+            <th data-override="Location">Location</th>
+            <th data-override="HASC">HASC</th>
+            <th data-override="Reference">Reference</th>
+            <th data-override="Park Name">Park Name</th>
+            <th data-override="First QSO Date">First QSO Date</th>
+            <th data-override="QSOs">QSOs</th>
+        </tr>					
+    </thead>
+    <tbody> 
+    </tbody>
+</table>
