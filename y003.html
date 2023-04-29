@@ -16,7 +16,6 @@
                 <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
                 <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
                 <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
-                <th data-field="QSOs"><button OnClick=sortOnClick(this)>QSOs</button></th>
             </tr>
         </thead>
     </table>
@@ -31,7 +30,6 @@
                     <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
                     <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
                     <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
-                    <th data-field="QSOs"><button OnClick=sortOnClick(this)>QSOs</button></th>
                 </tr>
             </thead>
         </table>
@@ -108,9 +106,6 @@
             var parks = g_name.filter(function(item, index){ 
                             if (item.Reference == value ) return true; 
                         }); 
-            var qsos = g_qso.filter(function(item, index){ 
-                if (item.Reference == value ) return true; 
-            }); 
             var pref = "";
             for( var j = 0; j < parks.length; j++ ){ 
                 pref =  pref + parks[j].都道府県 + ",";
@@ -121,12 +116,33 @@
                 data[i]["name"] = parks[0].日本語名;
                 data[i]["locationDesc"] = pref.slice(0,-1);
             }
-            data[i]["QSOs"] = qsos[0].QSOs
+        
         }
 
         return data;
     }
+    //
+    // addqsos
+    //
+    // 交信数の追加
+    //
+    function addqsos(data){
+        for (i = 0; i < data.length; i++) {
+            var value = data[i]["reference"];
 
+            var qsos = g_qso.filter(function(item, index){ 
+                if (item.Reference == value ) return true; 
+            });
+            if (qsos.length > 0) {
+                data[i]["mode"] =  data[i]["mode"] + "/" + qsos[0].QSOs
+            } else {
+                data[i]["mode"] =  data[i]["mode"] + "/0"
+
+            }
+        }
+
+        return data;
+    }
     //
     // reloadfortable
     //
@@ -204,6 +220,10 @@
             g_etcdata = replaceparks(etcData);
             g_data = MakeQrt(g_data);
             g_etcdata = MakeQrt(g_etcdata);
+
+            // QSOs 追加
+            g_data = addqsos(g_data);
+            g_etcdata = addqsos(g_etcdata);
 
             // テーブルを再書込み
             rewrite(g_data, fft8table);
