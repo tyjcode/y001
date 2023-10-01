@@ -1,4 +1,6 @@
 "DX Entity","Location","HASC","Reference","Park Name","First QSO Date","QSOs"
+"China","Liaoning","CN-LN","BY-0026","南湖公园(NanHu park) Park","2023-09-30",1
+"China","Liaoning","CN-LN","BY-0045","沈阳万柳塘公园 Park","2023-09-29",1
 "China","Zhejiang","CN-ZJ","BY-0005","太湖Taihu Lake National Lakeshore","2023-03-29",1
 "China","Zhejiang","CN-ZJ","BY-0106","浙江湖州-西山漾湿地公园 Wetland Reserve","2023-03-14",1
 "Japan","Aichi","JP-AI","JA-0127","Hida-Kisogawa Quasi-National Park","2023-05-26",1
@@ -43,6 +45,7 @@
 "Japan","Fukui","JP-FI","JA-1407","Fukui Shonen Undo Prefectural Park","2023-03-10",2
 "Japan","Fukuoka","JP-FO","JA-0148","Genkai Quasi-National Park","2022-11-10",1
 "Japan","Fukuoka","JP-FO","JA-1694","Dazaifu Prefectural Nature Park","2023-05-21",1
+"Japan","Fukuoka","JP-FO","JA-1698","Sefuriraizan Prefectural Nature Park","2023-10-01",1
 "Japan","Fukuoka","JP-FO","JA-1705","Kasuga Prefectural Park","2023-04-15",1
 "Japan","Fukushima","JP-FS","JA-1090","Nanko Prefectural Nature Park","2022-12-09",1
 "Japan","Fukushima","JP-FS","JA-1091","Okukuji Prefectural Nature Park","2023-02-25",1
@@ -204,6 +207,7 @@
 "Japan","Saitama","JP-ST","JA-1843","Saitamaken Agricultual and Forestry Prefectural Park","2023-02-23",1
 "Japan","Saitama","JP-ST","JA-1857","Midorinomura Agricultual and Forestry Prefectural Park","2022-11-19",2
 "Japan","Shiga","JP-SH","JA-0132","Biwako Quasi-National Park","2022-12-01",1
+"Japan","Shiga","JP-SH","JA-1490","Kasugayama Prefectural Park","2023-09-30",1
 "Japan","Shiga","JP-SH","JA-2025","The Shigaraki Ceramic Cultural Prefectural Park","2023-03-25",1
 "Japan","Shimane","JP-SM","JA-1599","Aonoyama Prefectural Nature Park","2022-11-30",1
 "Japan","Shizuoka","JP-SZ","JA-0016","Fuji-Hakone-Izu National Park","2023-03-12",14
@@ -229,7 +233,7 @@
 "Japan","Tokushima","JP-TS","JA-2029","Hinomine Omiko Regional Prefectural Park","2023-04-04",1
 "Japan","Tokushima","JP-TS","JA-2036","Tokushima Prefectural Dejima Wild Bird Garden Prefectural Park","2023-04-04",1
 "Japan","Tokyo","JP-TK","JA-0014","Chichibu-Tama-Kai National Park","2022-10-29",20
-"Japan","Tokyo","JP-TK","JA-0117","Meiji no Mori Takao Quasi-National Park","2022-07-05",14
+"Japan","Tokyo","JP-TK","JA-0117","Meiji no Mori Takao Quasi-National Park","2022-07-05",16
 "Japan","Tokyo","JP-TK","JA-0205","Showa Kinen National Government Park","2023-08-16",1
 "Japan","Tokyo","JP-TK","JA-0206","The Tokyo Rinkai Disaster Prevention National Government Park","2023-02-24",2
 "Japan","Tokyo","JP-TK","JA-1204","Takiyama Nature Prefectural Nature Park","2022-11-12",11
@@ -321,7 +325,7 @@
 "Japan","Tokyo","JP-TK","JA-2068","Ariake Shinsui Seaside Prefectural Park","2023-03-25",8
 "Japan","Tokyo","JP-TK","JA-2069","Harumi Greenway Prefectural Park","2023-04-09",1
 "Japan","Tokyo","JP-TK","JA-2070","Harumi Port Prefectural Park","2023-04-04",8
-"Japan","Tokyo","JP-TK","JA-2074","Nerima-joshi Prefectural Park","2023-09-27",1
+"Japan","Tokyo","JP-TK","JA-2074","Nerima-joshi Prefectural Park","2023-09-27",3
 "Japan","Tokyo","JP-TK","JA-2075","Umi-no-Mori Prefectural Park","2023-09-28",4
 "Japan","Toyama","JP-TY","JA-1373","Iozen Prefectural Nature Park","2023-06-04",1
 "Japan","Toyama","JP-TY","JA-1375","Toyama Athletic Recreation Prefectural Park","2022-11-28",1
