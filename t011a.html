@@ -16,27 +16,31 @@
     console.log("end");
 
     function reloadfortable(){
+        // 全公園情報取得
         $.getJSON("https://api.pota.app/program/parks/JP", function(data_json){
 
             var parkurl = "";
             var parkinfo = "";
             var rows = "";
 
+            // 公園毎
             for (i = 0; i < data_json.length; i++) {
                 parkurl = "https://api.pota.app/park/" + data_json[i]['reference']
                 console.log(parkurl);
+
+                // 公園情報取得
                 $.getJSON(parkurl, function(park_json){
+                    // 都道府県情報取得 複数ある場合も考慮
                     var locationDesc = park_json["locationDesc"] 
                     var locations = locationDesc.split(",");
-
                     for(l=0; l<locations.length;l++) {
+
                         parkinfo = park_json['reference'] + "," + park_json['name'] + "," + park_json['parkComments'] + "," + park_json['locationDesc'] + "," + park_json['locationName'] 
-                        console.log( parkinfo);
+                        console.log(parkinfo);
 
                         // テーブル 用の行
                         rows = "<tr>";
                         for ( j=0; j < nametable.tHead.rows[0].cells.length; j++) {
-                            context = ""
                             if ( nametable.tHead.rows[0].cells[j].textContent != "japanesename" ) {
                                 rows = rows + "<td>" + park_json[nametable.tHead.rows[0].cells[j].textContent] + "</td>";
                             } else {
@@ -44,11 +48,11 @@
                                     var prefectures = prefectures_json.filter(function(item, index){ 
                                         if (item.locationDesc == value ) return true;
                                     }); 
-                                    context = context + prefectures[0]["都道府県名"];
+                                    context =  prefectures[0]["都道府県名"];
+                                    //context = context.slice(0,-1);
+                                    rows = rows + "<td>" + context + "</td>";
                                 
                             }
-                            //context = context.slice(0,-1);
-                            rows = rows + "<td>" + context + "</td>";
                         }
                         rows += "</tr>"; 
                         $("#nametable").append(rows); 
