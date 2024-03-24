@@ -44,14 +44,11 @@
                             if ( nametable.tHead.rows[0].cells[j].textContent != "japanesename" ) {
                                 rows = rows + "<td>" + park_json[nametable.tHead.rows[0].cells[j].textContent] + "</td>";
                             } else {
-                                    var value = locations[l];
-                                    var prefectures = prefectures_json.filter(function(item, index){ 
-                                        if (item.locationDesc == value ) return true;
-                                    }); 
-                                    context =  prefectures[0]["都道府県名"];
-                                    //context = context.slice(0,-1);
-                                    rows = rows + "<td>" + context + "</td>";
-                                
+                                var value = locations[l];
+                                var prefectures = prefectures_json.filter(function(item, index){ 
+                                    if (item.locationDesc == value ) return true;
+                                }); 
+                                rows = rows + "<td>" + prefectures[0]["都道府県名"] + "</td>";
                             }
                         }
                         rows += "</tr>"; 
