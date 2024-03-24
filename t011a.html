@@ -26,42 +26,39 @@
                 parkurl = "https://api.pota.app/park/" + data_json[i]['reference']
                 console.log(parkurl);
                 $.getJSON(parkurl, function(park_json){
-                    parkinfo = park_json['reference'] + "," + park_json['name'] + "," + park_json['parkComments'] + "," + park_json['locationDesc'] + "," + park_json['locationName'] 
-                    console.log( parkinfo);
+                    var locationDesc = park_json["locationDesc"] 
+                    var locations = locationDesc.split(",");
 
-                    // テーブル 用の行
-                    rows = "<tr>";
-                    for ( j=0; j < nametable.tHead.rows[0].cells.length; j++) {
-                        if ( nametable.tHead.rows[0].cells[j].textContent != "japanesename" ) {
-                            rows = rows + "<td>" + park_json[nametable.tHead.rows[0].cells[j].textContent] + "</td>";
-                        } else {
-                            var locationDesc = park_json["locationDesc"] 
-                            var locations = locationDesc.split(",");
-                            var context = "";
-                            for(l=0; l<locations.length;l++) {
+                    for(l=0; l<locations.length;l++) {
+                        parkinfo = park_json['reference'] + "," + park_json['name'] + "," + park_json['parkComments'] + "," + park_json['locationDesc'] + "," + park_json['locationName'] 
+                        console.log( parkinfo);
 
-
-                                var value = locations[l];
-                                var prefectures = prefectures_json.filter(function(item, index){ 
-                                    if (item.locationDesc == value ) return true;
-                                }); 
-
-
-                                context = context + prefectures[0]["都道府県名"] + ",";
-                             
+                        // テーブル 用の行
+                        rows = "<tr>";
+                        for ( j=0; j < nametable.tHead.rows[0].cells.length; j++) {
+                            context = ""
+                            if ( nametable.tHead.rows[0].cells[j].textContent != "japanesename" ) {
+                                rows = rows + "<td>" + park_json[nametable.tHead.rows[0].cells[j].textContent] + "</td>";
+                            } else {
+                                    var value = locations[l];
+                                    var prefectures = prefectures_json.filter(function(item, index){ 
+                                        if (item.locationDesc == value ) return true;
+                                    }); 
+                                    context = context + prefectures[0]["都道府県名"];
+                                
                             }
-                            context = context.slice(0,-1);
+                            //context = context.slice(0,-1);
                             rows = rows + "<td>" + context + "</td>";
                         }
-
-                       
-
+                        rows += "</tr>"; 
+                        $("#nametable").append(rows); 
+                        
                     }
-                    rows += "</tr>"; 
-                    $("#nametable").append(rows); 
-                });
 
-            };
+                    
+                });
+            
+            }
 
         });
     }
