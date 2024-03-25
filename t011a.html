@@ -32,8 +32,10 @@
                 $.getJSON(parkurl, function(park_json){
                     // 都道府県情報取得 複数ある場合も考慮
                     var locationDesc = park_json["locationDesc"] 
-                    var locations = locationDesc.split(",");
-                    for(l=0; l<locations.length;l++) {
+                    var locationDescs = locationDesc.split(",");
+                    var locationName = park_json["locationName"] 
+                    var locationNames = locationName.split(",");
+                    for(l=0; l<locationDescs.length;l++) {
 
                         parkinfo = park_json['reference'] + "," + park_json['name'] + "," + park_json['parkComments'] + "," + park_json['locationDesc'] + "," + park_json['locationName'] 
                         console.log(parkinfo);
@@ -44,12 +46,12 @@
                             if ( nametable.tHead.rows[0].cells[j].textContent != "japanesename" ) {
                                 rows = rows + "<td>" + park_json[nametable.tHead.rows[0].cells[j].textContent] + "</td>";
                             } else {
-                                var value = locations[l];
+                                var value = locationDescs[l];
                                 var prefectures = prefectures_json.filter(function(item, index){ 
                                     if (item.locationDesc == value ) return true;
                                 });
                                 rows = rows + "<td>" + prefectures[0]["都道府県名"] + "</td>";
-                                rows = rows + "<td>" + value + "</td>";
+                                rows = rows + "<td>" + locationNames[l] + "</td>";
                                 j++;
                             }
                         }
