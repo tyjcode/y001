@@ -47,8 +47,10 @@
                                 var value = locations[l];
                                 var prefectures = prefectures_json.filter(function(item, index){ 
                                     if (item.locationDesc == value ) return true;
-                                }); 
+                                });
                                 rows = rows + "<td>" + prefectures[0]["都道府県名"] + "</td>";
+                                rows = rows + "<td>" + value + "</td>";
+                                j++;
                             }
                         }
                         rows += "</tr>"; 
@@ -100,6 +102,7 @@
             <th data-override="locationDesc">locationDesc</th>
             <th data-override="locationName">locationName</th>
             <th data-override="都道府県">japanesename</th>
+            <th data-override="location">location</th>
             <th data-override="latitude">latitude</th>
             <th data-override="longitude">longitude</th>
         </tr>					
