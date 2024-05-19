@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_3dad8895bafeb58f02c2273969d6ba54 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_3dad8895bafeb58f02c2273969d6ba54" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_3dad8895bafeb58f02c2273969d6ba54 = L.map(
+                "map_3dad8895bafeb58f02c2273969d6ba54",
+                {
+                    center: [35.5291, 138.517],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 10,
+                    zoomControl: true,
+                    preferCanvas: false,
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_43e98dd4bedab0dfdc5e71964593de32 = L.tileLayer(
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {"attribution": "Data by \u0026copy; \u003ca target=\"_blank\" href=\"http://openstreetmap.org\"\u003eOpenStreetMap\u003c/a\u003e, under \u003ca target=\"_blank\" href=\"http://www.openstreetmap.org/copyright\"\u003eODbL\u003c/a\u003e.", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+            var marker_48fcaf26a4c6a1e0c6f6e1975fa679d2 = L.marker(
+                [35.6421, 138.217],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+            var icon_985425d78531f361365d6b88255b8c02 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+            );
+            marker_48fcaf26a4c6a1e0c6f6e1975fa679d2.setIcon(icon_985425d78531f361365d6b88255b8c02);
+        
+    
+        var popup_77543530d530eaf96aee8b19499b0760 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_758fe5c9b14cb26ec4b37324870c1036 = $(`<div id="html_758fe5c9b14cb26ec4b37324870c1036" style="width: 100.0%; height: 100.0%;">JP-0019<br/>南アルプス国立公園</div>`)[0];
+                popup_77543530d530eaf96aee8b19499b0760.setContent(html_758fe5c9b14cb26ec4b37324870c1036);
+            
+        
+
+        marker_48fcaf26a4c6a1e0c6f6e1975fa679d2.bindPopup(popup_77543530d530eaf96aee8b19499b0760)
+        ;
+
+        
+    
+    
+            var marker_cc0e0d403bc80431c93b0c329e8ae2c8 = L.marker(
+                [35.6724, 138.582],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+            var icon_ddb9830b22339a70ec491e4707416512 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+            );
+            marker_cc0e0d403bc80431c93b0c329e8ae2c8.setIcon(icon_ddb9830b22339a70ec491e4707416512);
+        
+    
+        var popup_c60a2e06ab5ea697f969c92f1e80bc48 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_95a53cb17f692916de2d781b47883231 = $(`<div id="html_95a53cb17f692916de2d781b47883231" style="width: 100.0%; height: 100.0%;">JP-1329<br/>愛宕山広域公園</div>`)[0];
+                popup_c60a2e06ab5ea697f969c92f1e80bc48.setContent(html_95a53cb17f692916de2d781b47883231);
+            
+        
+
+        marker_cc0e0d403bc80431c93b0c329e8ae2c8.bindPopup(popup_c60a2e06ab5ea697f969c92f1e80bc48)
+        ;
+
+        
+    
+    
+            var marker_34dd81c4611e4a38de44bdf6e7795059 = L.marker(
+                [35.5898, 138.582],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+            var icon_c9fa70f2d4a43c9de07b2663fb629354 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+            );
+            marker_34dd81c4611e4a38de44bdf6e7795059.setIcon(icon_c9fa70f2d4a43c9de07b2663fb629354);
+        
+    
+        var popup_b99724a13b008490478ba0722babe831 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_efa7571a6d488a64a8d57f6f04e8993a = $(`<div id="html_efa7571a6d488a64a8d57f6f04e8993a" style="width: 100.0%; height: 100.0%;">JP-1330<br/>曽根丘陵公園</div>`)[0];
+                popup_b99724a13b008490478ba0722babe831.setContent(html_efa7571a6d488a64a8d57f6f04e8993a);
+            
+        
+
+        marker_34dd81c4611e4a38de44bdf6e7795059.bindPopup(popup_b99724a13b008490478ba0722babe831)
+        ;
+
+        
+    
+    
+            var marker_11349854a116466bf885b03278a718b2 = L.marker(
+                [35.7809, 138.464],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+            var icon_a10bc44d77d931e7b4e51dcaf4ff3f28 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+            );
+            marker_11349854a116466bf885b03278a718b2.setIcon(icon_a10bc44d77d931e7b4e51dcaf4ff3f28);
+        
+    
+        var popup_40d9a1c3cdec49dd3fdd1349ab5ec5c3 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_ff636e01c98f8d888061692e1e9a2ac6 = $(`<div id="html_ff636e01c98f8d888061692e1e9a2ac6" style="width: 100.0%; height: 100.0%;">JP-1332<br/>山梨県立フラワーセンター ハイジの村</div>`)[0];
+                popup_40d9a1c3cdec49dd3fdd1349ab5ec5c3.setContent(html_ff636e01c98f8d888061692e1e9a2ac6);
+            
+        
+
+        marker_11349854a116466bf885b03278a718b2.bindPopup(popup_40d9a1c3cdec49dd3fdd1349ab5ec5c3)
+        ;
+
+        
+    
+    
+            var marker_1595de3a6af3bf3c913148dd7c697256 = L.marker(
+                [35.6604, 138.538],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+            var icon_730d17c5462f15a72d6f4db9603021e4 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+            );
+            marker_1595de3a6af3bf3c913148dd7c697256.setIcon(icon_730d17c5462f15a72d6f4db9603021e4);
+        
+    
+        var popup_9e1cffe8c1caa60f02ad10e6288c68b3 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_3ab55b1921919b7d526d1d36e77d9617 = $(`<div id="html_3ab55b1921919b7d526d1d36e77d9617" style="width: 100.0%; height: 100.0%;">JP-1909<br/>芸術の森公園</div>`)[0];
+                popup_9e1cffe8c1caa60f02ad10e6288c68b3.setContent(html_3ab55b1921919b7d526d1d36e77d9617);
+            
+        
+
+        marker_1595de3a6af3bf3c913148dd7c697256.bindPopup(popup_9e1cffe8c1caa60f02ad10e6288c68b3)
+        ;
+
+        
+    
+    
+            var marker_8211b0a10df29406a0ca4d3149adb441 = L.marker(
+                [35.66, 138.568],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+            var icon_b5c82659e5eb4d0943bac23a27568ec1 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+            );
+            marker_8211b0a10df29406a0ca4d3149adb441.setIcon(icon_b5c82659e5eb4d0943bac23a27568ec1);
+        
+    
+        var popup_667b2bdeb4f51b837a16a79047d03796 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_31042a021af145bac12dc8114c4a839f = $(`<div id="html_31042a021af145bac12dc8114c4a839f" style="width: 100.0%; height: 100.0%;">JP-1911<br/>中央公園</div>`)[0];
+                popup_667b2bdeb4f51b837a16a79047d03796.setContent(html_31042a021af145bac12dc8114c4a839f);
+            
+        
+
+        marker_8211b0a10df29406a0ca4d3149adb441.bindPopup(popup_667b2bdeb4f51b837a16a79047d03796)
+        ;
+
+        
+    
+    
+            var marker_f1a3a2950397e99378f098e99709d6ea = L.marker(
+                [35.6633, 138.567],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+            var icon_b005914ce591ca4bb162f13f956c582d = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+            );
+            marker_f1a3a2950397e99378f098e99709d6ea.setIcon(icon_b005914ce591ca4bb162f13f956c582d);
+        
+    
+        var popup_0c57edd5deddf32971cef583e9cc5f7d = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_5ace2f3b1bac45ecc908705e5c1432f8 = $(`<div id="html_5ace2f3b1bac45ecc908705e5c1432f8" style="width: 100.0%; height: 100.0%;">JP-1912<br/>丸の内公園</div>`)[0];
+                popup_0c57edd5deddf32971cef583e9cc5f7d.setContent(html_5ace2f3b1bac45ecc908705e5c1432f8);
+            
+        
+
+        marker_f1a3a2950397e99378f098e99709d6ea.bindPopup(popup_0c57edd5deddf32971cef583e9cc5f7d)
+        ;
+
+        
+    
+    
+            var marker_4208506379352739b5c97d34d2a31ff7 = L.marker(
+                [35.9257, 138.408],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+            var icon_7bc240d8813674443498718e6236132d = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+            );
+            marker_4208506379352739b5c97d34d2a31ff7.setIcon(icon_7bc240d8813674443498718e6236132d);
+        
+    
+        var popup_e55e560c7b7a41d97295c197aaffaa75 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_cac4bbeaa33a02f64e089c519b3880f5 = $(`<div id="html_cac4bbeaa33a02f64e089c519b3880f5" style="width: 100.0%; height: 100.0%;">JP-1916<br/>まきば公園</div>`)[0];
+                popup_e55e560c7b7a41d97295c197aaffaa75.setContent(html_cac4bbeaa33a02f64e089c519b3880f5);
+            
+        
+
+        marker_4208506379352739b5c97d34d2a31ff7.bindPopup(popup_e55e560c7b7a41d97295c197aaffaa75)
+        ;
+
+        
+    
+    
+            var marker_b8bfd6d7ffa20c1a6ea7de6c049bedb6 = L.marker(
+                [35.9013, 138.429],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+            var icon_6861cf904e545454a706e4bf7f5f30fe = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+            );
+            marker_b8bfd6d7ffa20c1a6ea7de6c049bedb6.setIcon(icon_6861cf904e545454a706e4bf7f5f30fe);
+        
+    
+        var popup_151d51f4f046fd2b7ac0f79c302a488d = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_f74e6c786221e1f558918e08cfa1cb1e = $(`<div id="html_f74e6c786221e1f558918e08cfa1cb1e" style="width: 100.0%; height: 100.0%;">JP-1917<br/>丘の公園</div>`)[0];
+                popup_151d51f4f046fd2b7ac0f79c302a488d.setContent(html_f74e6c786221e1f558918e08cfa1cb1e);
+            
+        
+
+        marker_b8bfd6d7ffa20c1a6ea7de6c049bedb6.bindPopup(popup_151d51f4f046fd2b7ac0f79c302a488d)
+        ;
+
+        
+    
+    
+            var marker_e800257563c02c4c70b7057852615e87 = L.marker(
+                [35.5291, 138.517],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_5908b420913543113343733b01556ada = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_3d2a0b15c293b26b3e665e56d4b4ff62 = $(`<div id="html_3d2a0b15c293b26b3e665e56d4b4ff62" style="width: 100.0%; height: 100.0%;">JP-1326<br/>四尾連湖県立自然公園<br/>2</div>`)[0];
+                popup_5908b420913543113343733b01556ada.setContent(html_3d2a0b15c293b26b3e665e56d4b4ff62);
+            
+        
+
+        marker_e800257563c02c4c70b7057852615e87.bindPopup(popup_5908b420913543113343733b01556ada)
+        ;
+
+        
+    
+    
+            var marker_cf7d91b009cb3d28b680c34add3018e7 = L.marker(
+                [35.5941, 138.357],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_680ab9676717a1d463e409cfd5a3230e = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_42ebfc3850ad240bd5222ea4132cde61 = $(`<div id="html_42ebfc3850ad240bd5222ea4132cde61" style="width: 100.0%; height: 100.0%;">JP-1327<br/>南アルプス巨摩県立自然公園<br/>2</div>`)[0];
+                popup_680ab9676717a1d463e409cfd5a3230e.setContent(html_42ebfc3850ad240bd5222ea4132cde61);
+            
+        
+
+        marker_cf7d91b009cb3d28b680c34add3018e7.bindPopup(popup_680ab9676717a1d463e409cfd5a3230e)
+        ;
+
+        
+    
+    
+            var marker_131a1b65ab1d5b9d8e2f797bb5349c72 = L.marker(
+                [35.6222, 138.587],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_d28b29d35a0909145197e39ea699912a = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_98429643b62f29fba94417dfffbb861c = $(`<div id="html_98429643b62f29fba94417dfffbb861c" style="width: 100.0%; height: 100.0%;">JP-1328<br/>小瀬スポーツ公園<br/>1</div>`)[0];
+                popup_d28b29d35a0909145197e39ea699912a.setContent(html_98429643b62f29fba94417dfffbb861c);
+            
+        
+
+        marker_131a1b65ab1d5b9d8e2f797bb5349c72.bindPopup(popup_d28b29d35a0909145197e39ea699912a)
+        ;
+
+        
+    
+    
+            var marker_1ecd8b423d38378118425a9f638dfab2 = L.marker(
+                [35.6681, 138.455],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_8301ad57fb06083a35428ab4b78e21f8 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_d0adccdf84da433b9d6cac670e86787f = $(`<div id="html_d0adccdf84da433b9d6cac670e86787f" style="width: 100.0%; height: 100.0%;">JP-1331<br/>御勅使南公園<br/>1</div>`)[0];
+                popup_8301ad57fb06083a35428ab4b78e21f8.setContent(html_d0adccdf84da433b9d6cac670e86787f);
+            
+        
+
+        marker_1ecd8b423d38378118425a9f638dfab2.bindPopup(popup_8301ad57fb06083a35428ab4b78e21f8)
+        ;
+
+        
+    
+    
+            var marker_80f92036125df9a7f4917985dad8d9b3 = L.marker(
+                [35.4181, 138.437],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_1112677b8d4a1e27571753dad98caff2 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_ad1810df3398ed594d7a7174de22f7a6 = $(`<div id="html_ad1810df3398ed594d7a7174de22f7a6" style="width: 100.0%; height: 100.0%;">JP-1333<br/>富士川クラフトパーク<br/>2</div>`)[0];
+                popup_1112677b8d4a1e27571753dad98caff2.setContent(html_ad1810df3398ed594d7a7174de22f7a6);
+            
+        
+
+        marker_80f92036125df9a7f4917985dad8d9b3.bindPopup(popup_1112677b8d4a1e27571753dad98caff2)
+        ;
+
+        
+    
+    
+            var marker_f1f038f6b48adf5aca90a0259aa6bf91 = L.marker(
+                [35.454, 138.768],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_1ee4d037cf3db602d1e68474746d3c6c = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_9d62d366c9a212b25ffa6676737d07a0 = $(`<div id="html_9d62d366c9a212b25ffa6676737d07a0" style="width: 100.0%; height: 100.0%;">JP-1334<br/>富士北麓公園<br/>1</div>`)[0];
+                popup_1ee4d037cf3db602d1e68474746d3c6c.setContent(html_9d62d366c9a212b25ffa6676737d07a0);
+            
+        
+
+        marker_f1f038f6b48adf5aca90a0259aa6bf91.bindPopup(popup_1ee4d037cf3db602d1e68474746d3c6c)
+        ;
+
+        
+    
+    
+            var marker_1c0fb4b7548799dfbae74ab3d16801be = L.marker(
+                [35.7025, 138.665],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_39cb2d80a1e147dee6a352b04553f363 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_57746ea3e2a4bfcc872e328e55a3222e = $(`<div id="html_57746ea3e2a4bfcc872e328e55a3222e" style="width: 100.0%; height: 100.0%;">JP-1906<br/>笛吹川フルーツ公園<br/>3</div>`)[0];
+                popup_39cb2d80a1e147dee6a352b04553f363.setContent(html_57746ea3e2a4bfcc872e328e55a3222e);
+            
+        
+
+        marker_1c0fb4b7548799dfbae74ab3d16801be.bindPopup(popup_39cb2d80a1e147dee6a352b04553f363)
+        ;
+
+        
+    
+    
+            var marker_e78666dc46be01c296680e5dc9e310d0 = L.marker(
+                [35.6849, 138.557],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_2ebf00eb2bb8d6171f40300d045f16d1 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_579eefed2e530e6fd6bb9175a1b373de = $(`<div id="html_579eefed2e530e6fd6bb9175a1b373de" style="width: 100.0%; height: 100.0%;">JP-1907<br/>緑が丘スポーツ公園<br/>2</div>`)[0];
+                popup_2ebf00eb2bb8d6171f40300d045f16d1.setContent(html_579eefed2e530e6fd6bb9175a1b373de);
+            
+        
+
+        marker_e78666dc46be01c296680e5dc9e310d0.bindPopup(popup_2ebf00eb2bb8d6171f40300d045f16d1)
+        ;
+
+        
+    
+    
+            var marker_904f4c6f4c9c0e2b662efe0cbf54f6ce = L.marker(
+                [35.6513, 138.507],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_a52c6c1a204e8bed8a9e11b42c34dca4 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_6da3b700c10c5a7514cc3aa72e4d7fc8 = $(`<div id="html_6da3b700c10c5a7514cc3aa72e4d7fc8" style="width: 100.0%; height: 100.0%;">JP-1908<br/>釜無川スポーツ公園<br/>1</div>`)[0];
+                popup_a52c6c1a204e8bed8a9e11b42c34dca4.setContent(html_6da3b700c10c5a7514cc3aa72e4d7fc8);
+            
+        
+
+        marker_904f4c6f4c9c0e2b662efe0cbf54f6ce.bindPopup(popup_a52c6c1a204e8bed8a9e11b42c34dca4)
+        ;
+
+        
+    
+    
+            var marker_5b6fd24a7cd44044d1351059166b15aa = L.marker(
+                [35.6647, 138.571],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_c6a01e026998b2c42de085c10c68a3e8 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_4a333af15511212f9813c22b8e3e3a40 = $(`<div id="html_4a333af15511212f9813c22b8e3e3a40" style="width: 100.0%; height: 100.0%;">JP-1910<br/>舞鶴城公園<br/>1</div>`)[0];
+                popup_c6a01e026998b2c42de085c10c68a3e8.setContent(html_4a333af15511212f9813c22b8e3e3a40);
+            
+        
+
+        marker_5b6fd24a7cd44044d1351059166b15aa.bindPopup(popup_c6a01e026998b2c42de085c10c68a3e8)
+        ;
+
+        
+    
+    
+            var marker_c2b0b0bbf374c22678441844408ad45d = L.marker(
+                [35.6685, 138.44],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_fcb96e1d125e145cf01799d79eed86a5 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_f7ce586a7e8cb73a542dae01d4f34835 = $(`<div id="html_f7ce586a7e8cb73a542dae01d4f34835" style="width: 100.0%; height: 100.0%;">JP-1913<br/>御勅使公園<br/>1</div>`)[0];
+                popup_fcb96e1d125e145cf01799d79eed86a5.setContent(html_f7ce586a7e8cb73a542dae01d4f34835);
+            
+        
+
+        marker_c2b0b0bbf374c22678441844408ad45d.bindPopup(popup_fcb96e1d125e145cf01799d79eed86a5)
+        ;
+
+        
+    
+    
+            var marker_b5759fc39d1afc530ce20bc3e8a81fc7 = L.marker(
+                [35.6399, 138.676],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_fe0e2b99b0f85c1d83a298c68e69cdd7 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_a29fa1ad9b987a166e5f662681a0901a = $(`<div id="html_a29fa1ad9b987a166e5f662681a0901a" style="width: 100.0%; height: 100.0%;">JP-1914<br/>森林公園金川の森<br/>1</div>`)[0];
+                popup_fe0e2b99b0f85c1d83a298c68e69cdd7.setContent(html_a29fa1ad9b987a166e5f662681a0901a);
+            
+        
+
+        marker_b5759fc39d1afc530ce20bc3e8a81fc7.bindPopup(popup_fe0e2b99b0f85c1d83a298c68e69cdd7)
+        ;
+
+        
+    
+    
+            var marker_f8a3a828373326f15578d3c02d83c3c4 = L.marker(
+                [35.6221, 138.996],
+                {}
+            ).addTo(map_3dad8895bafeb58f02c2273969d6ba54);
+        
+    
+        var popup_313842ea2ab18c667a3ee791118006c9 = L.popup({"maxWidth": 1000});
+
+        
+            
+                var html_f63e9691f424fbbfe9ec7a07ba273ef3 = $(`<div id="html_f63e9691f424fbbfe9ec7a07ba273ef3" style="width: 100.0%; height: 100.0%;">JP-1915<br/>桂川ウェルネスパーク<br/>2</div>`)[0];
+                popup_313842ea2ab18c667a3ee791118006c9.setContent(html_f63e9691f424fbbfe9ec7a07ba273ef3);
+            
+        
+
+        marker_f8a3a828373326f15578d3c02d83c3c4.bindPopup(popup_313842ea2ab18c667a3ee791118006c9)
+        ;
+
+        
+    
+</script>
+</html>
