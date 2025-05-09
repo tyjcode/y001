@@ -16,3 +16,16 @@ https://tyjcode.github.io/y001/y001.html
 - 最初の読み込みで、タイミングによっては、日本語の公園名にならない場合があります。
 - コールサインをコピーするとき、行全体をコピーすると、JTDX にペーストできません。
 
+
+公園データー作成:
+t011a.html
+parks-latest.json をコピー
+parks-yyyymmdd.json にもコピーしておく
+
+
+ハンター情報更新
+POTAサイト My Stats/Hunted Parksの Export CSV
+Hunter_parks.csv をコピー
+t012.html
+Hunter_parks.jsonをコピー
+
