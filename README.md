@@ -21,11 +21,14 @@ https://tyjcode.github.io/y001/y001.html
 t011a.html
 parks-latest.json をコピー
 parks-yyyymmdd.json にもコピーしておく
+コミット
 
 
 ハンター情報更新
 POTAサイト My Stats/Hunted Parksの Export CSV
 Hunter_parks.csv をコピー
+コミット
 t012.html
 Hunter_parks.jsonをコピー
+コミット
 
