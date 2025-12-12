@@ -206,10 +206,11 @@
         var rows = "";
         for (i = 0; i < data.length; i++) {
             rows += "<tr>";
-            for ( j=0; j < table.tHead.rows[0].cells.length; j++) {
+            for ( j=0; j < table.tHead.rows[0].cells.length-1; j++) {
 
                 rows = rows + "<td>" + data[i][table.tHead.rows[0].cells[j].textContent] + "</td>";
             }
+            rows = rows +  "<td> - </td>"; // サーバー側で空のqsos項目を作成
             rows += "</tr>";  
         }
 
@@ -271,10 +272,22 @@
     //
     function rewrite(data_json, table) {
         for (i = 0; i < data_json.length; i++) {
-            for ( j=0; j < table.tHead.rows[0].cells.length; j++) {
+            for ( j=0; j < table.tHead.rows[0].cells.length-1; j++) {
                 table.rows[i+1].cells[j].innerText = data_json[i][table.tHead.rows[0].cells[j].textContent] ;
             }
+            table.rows[i+1].cells[j].innerText = MakeQsos(data_json[i][table.tHead.rows[0].cells[3].textContent]);
         }
+    }
+
+    // MakeQsos
+    //
+    // 交信数を取得
+    //
+    function MakeQsos(data)
+    {
+        var qsos = data;
+        
+        return qsos;
     }
 
     // sortOnClick
