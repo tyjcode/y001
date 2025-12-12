@@ -1,0 +1,325 @@
+
+<html>
+<head>
+    <title>FT8 FT4 Japan</title>
+</head>
+<body>
+
+<p><span id="jaactivators"></span></p>
+<p><span id="fft8">FT4&FT8</span>
+    <table id="fft8table">
+        <thead>
+            <tr>
+                <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
+                <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
+                <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
+                <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
+                <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
+                <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
+                <th data-field="qsos"><button OnClick=sortOnClick(this)>qsos</button></th>
+            </tr>
+        </thead>
+    </table>
+    </p>
+    <p><span id="fetc">etc</span>
+        <table id="fetctable">
+            <thead>
+                <tr>
+                    <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
+                    <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
+                    <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
+                    <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
+                    <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
+                    <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
+                    <th data-field="qsos"><button OnClick=sortOnClick(this)>qsos</button></th>
+                </tr>
+            </thead>
+        </table>
+        </p>
+<p><span id="jaactivators‗max"></span></p>
+<p><span id="activators‗max"></span></p>
+<p><span id="list‗max"></span></p>
+
+<p><a href="y001.html">The World</a></p>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+<script type="text/javascript">
+    console.log("begin");
+
+    var g_data = ""; // Activator情報
+    var g_etcdata = "";
+    var g_name = ""; // 日本語の公園名
+    var g_jact_max = 0; // jaactivators‗max
+    var g_act_max = 0; // activators‗max
+    var g_list_max = 0; // list‗max
+    
+    // 初期情報の取得と表示
+    loadparks();
+    reloadfortable();
+
+    // １分毎に、Activator情報を更新
+    const timer = 60000;
+    window.addEventListener('load',function(){
+        setInterval('reloadfortable()',timer);
+    });    
+
+    console.log("End");
+
+    //
+    // loadparks
+    //
+    // 日本語の公園名取得
+    //
+    function loadparks(){
+        $.getJSON("https://tyjcode.github.io/y001/parks-latest.json", function(name_json){
+
+                g_name = name_json;
+
+            }); 
+    }
+
+    //
+    // replaceparks
+    //
+    // 日本語の公園名に置換え
+    //
+    function replaceparks(data){
+        for (i = 0; i < data.length; i++) {
+            var value = data[i]["reference"];
+
+            var parks = g_name.filter(function(item, index){ 
+                            if (item.Reference == value ) return true; 
+                        }); 
+
+            var pref = "";
+            for( var j = 0; j < parks.length; j++ ){ 
+                pref =  pref + parks[j].都道府県 + ",";
+                console.log( parks[j].Reference + ", " + parks[j].日本語名  + ", " + parks[j].都道府県 ); 
+            } 
+
+            if (parks.length > 0) {
+                data[i]["name"] = parks[0].日本語名;
+                data[i]["locationDesc"] = pref.slice(0,-1);
+            }
+        }
+
+        return data;
+    }
+
+    //
+    // reloadfortable
+    //
+    // 一覧、ーブルに記載
+    //
+    function reloadfortable(){
+        $.getJSON("https://api.pota.app/spot/activator", function(data_json){
+
+            var rows = "";
+            var etcrows = "";
+            var jaactivators = "";
+            var activators = "";
+            var jadata_json;
+            
+            // クリアー
+            for ( i=fft8table.rows.length-1; i > 0; i--) {
+                fft8table.deleteRow(i); 
+            }
+            for ( i=fetctable.rows.length-1; i > 0; i--) {
+                fetctable.deleteRow(i); 
+            }
+            $("#jaactivators").text("");
+
+            // ソート
+            data_json.sort(function ( a, b ) {
+                var r = 0;
+
+                if( a.activator < b.activator ){ r = -1; } // activator 昇順
+                else { r = 1; }
+
+                return r;
+            });
+
+            data_json.sort(function ( a, b ) {
+                var r = 0;
+
+                if( a.mode < b.mode ){ r = -1; } // mode 昇順
+                else { r = 1; }
+
+                return r;
+            });
+            data_json.sort(function ( a, b ) {
+                var r = 0;
+
+                if( parseFloat(a.frequency) < parseFloat(b.frequency) ){ r = -1; } // frequency 昇順
+                else { r = 1; }
+
+                return r;
+            });
+
+            // 情報抽出
+            var matchData = data_json.filter(function(item, index){
+                if (item.mode == "FT8" || item.mode == "FT4" ) {
+                    if (item.reference.substr(0,2) == "JP") {
+                        return true;
+                    }
+                }
+            });
+            var etcData = data_json.filter(function(item, index){
+                if (item.mode != "FT8" && item.mode != "FT4" ) {
+                    if (item.reference.substr(0,2) == "JP") {
+                        return true;
+                    }
+                }
+            });
+
+            // テーブル の行作成
+            rows = MakeRow(matchData, fft8table);
+            $("#fft8table").append(rows); 
+            rows = MakeRow(etcData, fetctable);
+            $("#fetctable").append(rows);
+
+            // 日本語名へ置換え & QRT追加
+            g_data = replaceparks(matchData);
+            g_etcdata = replaceparks(etcData);
+            g_data = MakeQrt(g_data);
+            g_etcdata = MakeQrt(g_etcdata);
+
+            // テーブルを再書込み
+            rewrite(g_data, fft8table);
+            rewrite(g_etcdata, fetctable);
+
+            // 一覧の書込み
+            $("#jaactivators").text(MakeList(g_data));
+
+        });
+    }
+
+    // MakeRow
+    //
+    // テーブルの行を追加
+    //
+    function MakeRow(data, table)
+    {
+        var rows = "";
+        for (i = 0; i < data.length; i++) {
+            rows += "<tr>";
+            for ( j=0; j < table.tHead.rows[0].cells.length; j++) {
+
+                rows = rows + "<td>" + data[i][table.tHead.rows[0].cells[j].textContent] + "</td>";
+            }
+            rows += "</tr>";  
+        }
+
+        return rows;
+    }
+
+    // MakeList
+    //
+    // QRT マーク追加
+    //
+    function MakeList(data)
+    {
+        if (data.length == 0) return "None";
+        
+        var list = "";
+        for (i = 0; i < data.length; i++)
+        {
+            if (data[i].mode.substr(0,1) != "＞")
+            {
+                list = list + data[i].activator + ","
+            }
+        }
+        if (list == "")
+        {
+            return "None";
+        }
+        else
+        {
+            return list.slice(0,-1)
+        }
+    }
+    // MakeQrt
+    //
+    // QRT マーク追加
+    //
+    function MakeQrt(data)
+    {
+        // QRT のコールサインを変更
+        for (i = 0; i < data.length; i++) {
+            if (data[i]["comments"].toUpperCase().includes("QRT")) {
+                data[i]["mode"] = "＞" + data[i]["mode"];
+            }
+        }
+        data.sort(function ( a, b ) {
+                var r = 0;
+
+                if( a.mode < b.mode ){ r = -1; } // mode 昇順
+                else { r = 1; }
+
+                return r;
+            });
+
+        return data;
+    }
+
+    // rewrite
+    //
+    // 既存のテーブルを書き換え
+    //
+    function rewrite(data_json, table) {
+        for (i = 0; i < data_json.length; i++) {
+            for ( j=0; j < table.tHead.rows[0].cells.length; j++) {
+                table.rows[i+1].cells[j].innerText = data_json[i][table.tHead.rows[0].cells[j].textContent] ;
+            }
+        }
+    }
+
+    // sortOnClick
+    //
+    // 並べ替え
+    //
+//    function sortOnClick(obj, data, table) {
+    function sortOnClick(obj) {
+
+        var table = obj.parentElement.parentElement.parentElement.parentElement;
+        var key = obj.innerText;
+
+        if (table.id == "fft8table")
+        {
+            var data = g_data;
+        }
+        else
+        {
+            var data = g_etcdata;
+        }
+
+        if (key == "frequency") {
+            data.sort(function ( a, b ){
+                var r = 0;
+            
+                if( parseFloat(a[key]) < parseFloat(b[key]) ){ r = -1; }
+                else { r = 1; }
+                return r;
+            });    
+
+        } else {
+            data.sort(function ( a, b ){
+                var r = 0;
+            
+                if( a[key] < b[key] ){ r = -1; }
+                else { r = 1; }
+                return r;
+            });
+
+        }
+    
+        rewrite(data, table);
+    }
+
+
+</script>
+
+</html>
