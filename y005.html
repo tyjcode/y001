@@ -4,30 +4,88 @@
   <meta charset="UTF-8" />
   <title>POTA ハントツール</title>
   <style>
-    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; margin: 16px; }
-    h1 { margin-bottom: 4px; }
-    .summary { padding: 8px; background: #f2f6ff; border-radius: 6px; margin-bottom: 12px; }
+    :root {
+      --bg: #121212;
+      --fg: #e0e0e0;
+      --panel: #1e1e1e;
+      --border: #444;
+      --accent: #3a7afe;
+      --ok: #4da3ff;
+      --ng: #ff6b6b;
+      --warn: #ffb74d;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 16px;
+      background: var(--bg);
+      color: var(--fg);
+    }
+    h1, h3 { color: var(--fg); }
+    .summary { padding: 8px; background: var(--panel); border-radius: 6px; margin-bottom: 12px; }
     .controls { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; }
 
-    table { border-collapse: collapse; width: auto; margin-bottom: 24px; table-layout: auto; }
-    th, td { border: 1px solid #ccc; padding: 4px 6px; font-size: 13px; white-space: nowrap; }
-    th { cursor: pointer; background: #eee; user-select: none; }
+    table { border-collapse: collapse; width: auto; margin-bottom: 24px; table-layout: auto; background: var(--panel); }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    th {
+      cursor: pointer;
+      background: #2a2a2a;
+      user-select: none;
+    }
     th.sorted-asc::after { content: ' ▲'; }
     th.sorted-desc::after { content: ' ▼'; }
+
     .status { margin-top: 8px; font-size: 13px; }
     .status span { margin-right: 12px; }
-    .ok { color: blue; }
-    .ng { color: red; }
-    .warn { color: darkorange; }
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; }
-    .modal-content { background: #fff; padding: 16px; width: 420px; border-radius: 8px; }
-    pre.test { background:#f7f7f7; padding:8px; font-size:12px; }
+    .ok { color: var(--ok); }
+    .ng { color: var(--ng); }
+    .warn { color: var(--warn); }
+
+    button {
+      background: #2a2a2a;
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
     #maintBtn {
-  font-size: 13px;
-  font-family: inherit;
-  line-height: 1.2;
-  padding: 2px 6px;
-}
+      font-size: 13px;
+      font-family: inherit;
+      line-height: 1.2;
+      padding: 2px 6px;
+    }
+
+    input[type="checkbox"] { accent-color: var(--accent); }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: var(--panel);
+      padding: 16px;
+      width: 420px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    pre.test {
+      background: #000;
+      padding: 8px;
+      font-size: 12px;
+      color: #9cdcfe;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
