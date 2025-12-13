@@ -272,10 +272,10 @@
     //
     function rewrite(data_json, table) {
         for (i = 0; i < data_json.length; i++) {
-            for ( j=0; j < table.tHead.rows[0].cells.length-1; j++) {
+            for ( j=0; j < table.tHead.rows[0].cells.length; j++) {
                 table.rows[i+1].cells[j].innerText = data_json[i][table.tHead.rows[0].cells[j].textContent] ;
             }
-            table.rows[i+1].cells[j].innerText = MakeQsos(data_json[i][table.tHead.rows[0].cells[3].textContent]);
+           // table.rows[i+1].cells[j].innerText = MakeQsos(data_json[i][table.tHead.rows[0].cells[3].textContent]);
         }
     }
 
