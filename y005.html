@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>POTA ハントツール</title>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; margin: 16px; }
+    h1 { margin-bottom: 4px; }
+    .summary { padding: 8px; background: #f2f6ff; border-radius: 6px; margin-bottom: 12px; }
+    .controls { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 24px; }
+    th, td { border: 1px solid #ccc; padding: 4px 6px; font-size: 13px; }
+    th { cursor: pointer; background: #eee; user-select: none; }
+    th.sorted-asc::after { content: ' ▲'; }
+    th.sorted-desc::after { content: ' ▼'; }
+    .status { margin-top: 8px; font-size: 13px; }
+    .status span { margin-right: 12px; }
+    .ok { color: blue; }
+    .ng { color: red; }
+    .warn { color: darkorange; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; }
+    .modal-content { background: #fff; padding: 16px; width: 420px; border-radius: 8px; }
+    pre.test { background:#f7f7f7; padding:8px; font-size:12px; }
+  </style>
+</head>
+<body>
+<h1>POTA ハントツール</h1>
+<div class="summary" id="summary">loading...</div>
+
+<div class="controls">
+  <label>
+    <input type="checkbox" id="jpOnly" checked /> 日本のみ表示
+  </label>
+  <button id="maintBtn">メンテナンス</button>
+</div>
+
+<h3>FT8 / FT4</h3>
+<table id="tableDigital"></table>
+
+<h3>その他モード</h3>
+<table id="tableOther"></table>
+
+<div class="status" id="cacheStatus"></div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h3>メンテナンス</h3>
+    <div id="maintStatus"></div>
+    <hr />
+    <button id="clearCache">キャッシュクリア</button><br/><br/>
+    <input type="file" id="csvInput" accept=".csv" />
+    <hr />
+    <h4>簡易テスト結果</h4>
+    <pre class="test" id="testResult"></pre>
+    <hr />
+    <button id="closeModal">閉じる</button>
+  </div>
+</div>
+
+<script>
+const SPOT_URL = 'https://api.pota.app/spot/activator';
+const PARK_URL_BASE = 'https://api.pota.app/park/';
+const PREF_URL = 'https://tyjcode.github.io/y001/prefectures.json';
+
+let spots = [];
+let hunterMap = {};
+let prefMap = {};
+let parkCache = {};
+let sortKey = 'mode';
+let sortAsc = false;
+let warnings = [];
+
+// ---------- 初期化 ----------
+init();
+setInterval(loadSpots, 60000);
+
+async function init() {
+  await loadPrefs();
+  loadHunterFromLocal();
+  await loadSpots();
+  updateCacheStatus();
+}
+
+// ---------- fetch耐性 ----------
+async function safeFetchJson(url, fallback, label) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(res.status);
+    return await res.json();
+  } catch (e) {
+    warnings.push(label + ' fetch failed');
+    return fallback;
+  }
+}
+
+// ---------- データ取得 ----------
+async function loadPrefs() {
+  const data = await safeFetchJson(PREF_URL, [], 'prefectures');
+  prefMap = {};
+  data.forEach(p => {
+    // locationDesc (例: JP-TK) をキーに、日本語都道府県名を値にする
+    if (p.locationDesc && p['都道府県名']) {
+      prefMap[p.locationDesc] = p['都道府県名'];
+    }
+  });
+}
+
+function loadHunterFromLocal() {
+  const raw = localStorage.getItem('hunterCSV');
+  if (!raw) return;
+  parseHunterCSV(raw);
+}
+
+async function loadSpots() {
+  const data = await safeFetchJson(SPOT_URL, [], 'spots');
+  spots = await Promise.all(data.map(processSpot));
+  render();
+}
+
+// ---------- 処理 ----------
+async function processSpot(spot) {
+  spot.qsos = hunterMap[spot.reference] || 0;
+
+  if (spot.reference && spot.reference.startsWith('JP-')) {
+    if (!parkCache[spot.reference]) {
+      parkCache[spot.reference] = await safeFetchJson(
+        PARK_URL_BASE + spot.reference,
+        null,
+        'park:' + spot.reference
+      );
+    }
+    if (parkCache[spot.reference]?.parkComments) {
+      spot.name = parkCache[spot.reference].parkComments;
+    }
+  }
+
+  if (spot.locationDesc && spot.locationDesc.trim().startsWith('JP-')) {
+    const parts = spot.locationDesc.split(',');
+    spot.locationDesc = parts.map(raw => {
+      const loc = raw.trim();
+      return (loc.startsWith('JP-') && prefMap[loc]) ? prefMap[loc] : loc;
+    }).join(', ');
+  }
+
+  if (spot.comments && spot.comments.toUpperCase().includes('QRT')) {
+    spot.mode = '>' + spot.mode;
+  }
+
+  return spot;
+}
+
+// ---------- 描画 ----------
+function render() {
+  const jpOnly = document.getElementById('jpOnly').checked;
+  let filtered = spots.filter(s => !jpOnly || (s.reference && s.reference.startsWith('JP-')));
+
+  const summaryActs = filtered.filter(s => ['FT8','FT4','>FT8','>FT4'].includes(s.mode))
+    .map(s => s.activator);
+  document.getElementById('summary').textContent = summaryActs.join(', ');
+
+  filtered.sort((a,b) => {
+    let va = a[sortKey] || '';
+    let vb = b[sortKey] || '';
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  const digital = filtered.filter(s => ['FT8','FT4','>FT8','>FT4'].includes(s.mode));
+  const other = filtered.filter(s => !['FT8','FT4','>FT8','>FT4'].includes(s.mode));
+
+  renderTable('tableDigital', digital);
+  renderTable('tableOther', other);
+}
+
+function renderTable(id, rows) {
+  const table = document.getElementById(id);
+  table.innerHTML = '';
+  const headers = ['mode','frequency','activator','reference','name','locationDesc','qsos'];
+  const thead = document.createElement('tr');
+  headers.forEach(h => {
+    const th = document.createElement('th');
+    th.textContent = h;
+    if (sortKey === h) th.className = sortAsc ? 'sorted-asc':'sorted-desc';
+    th.onclick = () => {
+      if (sortKey === h) sortAsc = !sortAsc; else { sortKey = h; sortAsc = true; }
+      render();
+    };
+    thead.appendChild(th);
+  });
+  table.appendChild(thead);
+
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    headers.forEach(h => {
+      const td = document.createElement('td');
+      td.textContent = r[h] ?? '';
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+}
+
+// ---------- CSV ----------
+function parseHunterCSV(text) {
+  hunterMap = {};
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+  if (lines.length < 2) return;
+
+  const parseLine = (line) => {
+    const result = [];
+    let cur = '';
+    let inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') inQuote = !inQuote;
+      else if (c === ',' && !inQuote) { result.push(cur); cur = ''; }
+      else cur += c;
+    }
+    result.push(cur);
+    return result.map(v => v.trim());
+  };
+
+  const headers = parseLine(lines[0]).map(h => h.toLowerCase());
+  const refIdx = headers.indexOf('reference');
+  const qsoIdx = headers.indexOf('qsos');
+
+  lines.slice(1).forEach(l => {
+    const cols = parseLine(l);
+    const ref = refIdx >= 0 ? cols[refIdx] : cols[0];
+    const qsos = qsoIdx >= 0 ? cols[qsoIdx] : cols[1];
+    if (ref) hunterMap[ref] = Number(qsos) || 0;
+  });
+}
+
+// ---------- メンテ ----------
+document.getElementById('jpOnly').onchange = render;
+document.getElementById('maintBtn').onclick = () => {
+  document.getElementById('modal').style.display = 'flex';
+  updateMaintStatus();
+  runTests();
+};
+document.getElementById('closeModal').onclick = () => document.getElementById('modal').style.display='none';
+
+document.getElementById('clearCache').onclick = () => {
+  localStorage.removeItem('hunterCSV');
+  hunterMap = {};
+  parkCache = {};
+  updateCacheStatus();
+  updateMaintStatus();
+  render();
+};
+
+document.getElementById('csvInput').onchange = e => {
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = () => {
+    localStorage.setItem('hunterCSV', reader.result);
+    parseHunterCSV(reader.result);
+    updateCacheStatus();
+    render();
+  };
+  reader.readAsText(file);
+};
+
+function updateCacheStatus() {
+  const el = document.getElementById('cacheStatus');
+  el.innerHTML = `
+    <span class="${Object.keys(parkCache).length?'ok':'ng'}">公園情報キャッシュ</span>
+    <span class="${localStorage.getItem('hunterCSV')?'ok':'ng'}">ハント情報キャッシュ</span>
+    ${warnings.length ? '<span class="warn">fetch警告あり</span>' : ''}
+  `;
+}
+
+function updateMaintStatus() {
+  document.getElementById('maintStatus').innerHTML = `
+    <div class="${Object.keys(parkCache).length?'ok':'ng'}">公園情報キャッシュ</div>
+    <div class="${localStorage.getItem('hunterCSV')?'ok':'ng'}">ハント情報キャッシュ</div>
+    <div class="${warnings.length?'warn':'ok'}">fetch警告: ${warnings.join(', ') || 'なし'}</div>
+  `;
+}
+
+// ---------- 簡易テスト ----------
+function runTests() {
+  const results = [];
+
+  results.push('Test1: spots is array → ' + (Array.isArray(spots) ? 'OK' : 'NG'));
+  results.push('Test2: hunterMap object → ' + (typeof hunterMap === 'object' ? 'OK' : 'NG'));
+  results.push('Test3: render callable → ' + (typeof render === 'function' ? 'OK' : 'NG'));
+
+  const testSpot = { locationDesc: 'JP-FS,JP-GM,JP-XX' };
+  const testPref = { 'JP-FS': '福島県', 'JP-GM': '群馬県' };
+  const backup = prefMap;
+  prefMap = testPref;
+
+  if (testSpot.locationDesc.trim().startsWith('JP-')) {
+    const parts = testSpot.locationDesc.split(',');
+    testSpot.locationDesc = parts.map(r => {
+      const l = r.trim();
+      return (l.startsWith('JP-') && prefMap[l]) ? prefMap[l] : l;
+    }).join(', ');
+  }
+
+  results.push('Test4: locationDesc replace → ' + (testSpot.locationDesc === '福島県, 群馬県, JP-XX' ? 'OK' : 'NG'));
+
+  const csv = '"DX Entity","Location","HASC","Reference","Park Name","First QSO Date","QSOs"\n"Japan","Aichi","JP-AI","JP-0127","Test Park","2023-01-01",3';
+  parseHunterCSV(csv);
+  results.push('Test5: QSOs parse (quoted) → ' + (hunterMap['JP-0127'] === 3 ? 'OK' : 'NG'));
+
+  prefMap = backup;
+  document.getElementById('testResult').textContent = results.join('\n');
+}
+</script>
+</body>
+</html>
