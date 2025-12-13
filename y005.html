@@ -8,8 +8,8 @@
     h1 { margin-bottom: 4px; }
     .summary { padding: 8px; background: #f2f6ff; border-radius: 6px; margin-bottom: 12px; }
     .controls { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; }
-    table { border-collapse: collapse; width: auto; margin-bottom: 24px; }
-    th, td { border: 1px solid #ccc; padding: 4px 6px; font-size: 13px; }
+    table { border-collapse: collapse; width: auto; margin-bottom: 24px; table-layout: auto; }
+    th, td { border: 1px solid #ccc; padding: 4px 6px; font-size: 13px; white-space: nowrap; }
     th { cursor: pointer; background: #eee; user-select: none; }
     th.sorted-asc::after { content: ' ▲'; }
     th.sorted-desc::after { content: ' ▼'; }
