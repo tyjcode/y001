@@ -1,338 +1,454 @@
-
-<html>
+<!DOCTYPE html>
+<html lang="ja">
 <head>
-    <title>FT8 FT4 Japan</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POTA Spot & Hunt Matcher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* ソート可能なヘッダーのスタイル */
+        .sortable-header {
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .sortable-header:hover {
+            background-color: #f3f4f6;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 min-h-screen">
 
-<p><span id="jaactivators"></span></p>
-<p><span id="fft8">FT4&FT8</span>
-    <table id="fft8table">
-        <thead>
-            <tr>
-                <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
-                <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
-                <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
-                <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
-                <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
-                <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
-                <th data-field="qsos"><button OnClick=sortOnClick(this)>qsos</button></th>
-            </tr>
-        </thead>
-    </table>
-    </p>
-    <p><span id="fetc">etc</span>
-        <table id="fetctable">
-            <thead>
-                <tr>
-                    <th data-field="mode"><button OnClick=sortOnClick(this)>mode</button></th>
-                    <th data-field="frequency"><button OnClick=sortOnClick(this)>frequency</button></th>
-                    <th data-field="activator"><button OnClick=sortOnClick(this)>activator</button></th>
-                    <th data-field="reference"><button OnClick=sortOnClick(this)>reference</button></th>
-                    <th data-field="parkname"><button OnClick=sortOnClick(this)>name</button></th>
-                    <th data-field="locationDesc"><button OnClick=sortOnClick(this)>locationDesc</button></th>
-                    <th data-field="qsos"><button OnClick=sortOnClick(this)>qsos</button></th>
-                </tr>
-            </thead>
-        </table>
-        </p>
-<p><span id="jaactivators‗max"></span></p>
-<p><span id="activators‗max"></span></p>
-<p><span id="list‗max"></span></p>
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-tree text-green-600 text-xl"></i>
+                <h1 class="text-xl font-bold text-gray-900 tracking-tight">POTA Hunt Assistant</h1>
+            </div>
+            <div class="text-sm text-gray-500" id="clock">
+                --:--
+            </div>
+        </div>
+    </header>
 
-<p><a href="y001.html">The World</a></p>
-</body>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
-<script type="text/javascript">
-    console.log("begin");
+        <!-- Status & Settings Panel -->
+        <div class="bg-white rounded-lg shadow p-4 md:p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Hunt Info Section -->
+                <div class="space-y-3">
+                    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                        <i class="fa-solid fa-file-csv mr-1"></i> ハント情報 (CSV)
+                    </h2>
+                    <div id="csvStatus" class="text-sm p-3 bg-yellow-50 text-yellow-800 rounded border border-yellow-200">
+                        データがありません。hunter_parks.csv を読み込んでください。
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition shadow-sm">
+                            <i class="fa-solid fa-upload mr-1"></i> CSVを読み込む
+                            <input type="file" id="csvInput" accept=".csv" class="hidden">
+                        </label>
+                        <button onclick="clearCsvData()" class="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-2">
+                            クリア
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400">※初回のみ読込が必要です。データはブラウザに保存され、再起動後も維持されます。</p>
+                </div>
 
-    var g_data = ""; // Activator情報
-    var g_etcdata = "";
-    var g_name = ""; // 日本語の公園名
-    var g_jact_max = 0; // jaactivators‗max
-    var g_act_max = 0; // activators‗max
-    var g_list_max = 0; // list‗max
-    
-    // 初期情報の取得と表示
-    loadparks();
-    reloadfortable();
+                <!-- Spot Info Section -->
+                <div class="space-y-3 border-t md:border-t-0 md:border-l border-gray-100 md:pl-6 pt-4 md:pt-0">
+                    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                        <i class="fa-solid fa-satellite-dish mr-1"></i> スポット取得状況 (API)
+                    </h2>
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm">
+                            <span id="spotCount" class="font-bold text-2xl text-gray-900">0</span>
+                            <span class="text-gray-500">spots</span>
+                        </div>
+                        <div id="loadingIndicator" class="hidden">
+                            <i class="fa-solid fa-circle-notch fa-spin text-blue-500"></i> 更新中...
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-400">
+                        最終更新: <span id="lastUpdated">--:--:--</span> (1分毎に自動更新)
+                    </div>
+                    <button onclick="fetchSpots()" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-right"></i> 今すぐ更新
+                    </button>
+                </div>
+            </div>
+        </div>
 
-    // １分毎に、Activator情報を更新
-    const timer = 60000;
-    window.addEventListener('load',function(){
-        setInterval('reloadfortable()',timer);
-    });    
+        <!-- Data Table -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <!-- Time (UTC) - ソート可能 -->
+                            <th id="sortTime" onclick="sortSpots('spotTime')" scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Time (UTC) <span id="sort-icon-spotTime" class="ml-1 opacity-40"></span>
+                            </th>
+                            <!-- Activator - ソート可能 -->
+                            <th id="sortActivator" onclick="sortSpots('activator')" scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Activator <span id="sort-icon-activator" class="ml-1 opacity-40"></span>
+                            </th>
+                            <!-- Reference - ソート可能 -->
+                            <th id="sortReference" onclick="sortSpots('reference')" scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Reference <span id="sort-icon-reference" class="ml-1 opacity-40"></span>
+                            </th>
+                            <!-- Info - ソート不可 -->
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Info</th>
+                            <!-- My QSOs - ソート可能 (右寄せ) -->
+                            <th id="sortMyQSOs" onclick="sortSpots('myQSOs')" scope="col" class="sortable-header px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                My QSOs <span id="sort-icon-myQSOs" class="ml-1 opacity-40"></span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="spotTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Rows will be injected here -->
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                                データを読み込んでいます...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
 
-    console.log("End");
+    <script>
+        // --- 設定・状態 ---
+        const POTA_API_URL = 'https://api.pota.app/spot/activator';
+        const STORAGE_KEY = 'pota_hunter_parks_data';
+        
+        let state = {
+            spots: [],
+            hunts: {}, // Key: Reference, Value: QSOs count
+            lastUpdate: null,
+            sortKey: 'spotTime', // 初期ソートキー
+            sortDirection: 'desc' // 初期ソート方向: 降順 (新しいものが上)
+        };
 
-    //
-    // loadparks
-    //
-    // 日本語の公園名取得
-    //
-    function loadparks(){
-        $.getJSON("https://tyjcode.github.io/y001/parks-latest.json", function(name_json){
+        // --- 初期化処理 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHuntsFromStorage();
+            fetchSpots();
+            updateClock();
 
-                g_name = name_json;
+            // 1分ごとにスポット更新
+            setInterval(fetchSpots, 60000);
+            // 1秒ごとに時計更新
+            setInterval(updateClock, 1000);
 
-            }); 
-    }
-
-    //
-    // replaceparks
-    //
-    // 日本語の公園名に置換え
-    //
-    function replaceparks(data){
-        for (i = 0; i < data.length; i++) {
-            var value = data[i]["reference"];
-
-            var parks = g_name.filter(function(item, index){ 
-                            if (item.Reference == value ) return true; 
-                        }); 
-
-            var pref = "";
-            for( var j = 0; j < parks.length; j++ ){ 
-                pref =  pref + parks[j].都道府県 + ",";
-                console.log( parks[j].Reference + ", " + parks[j].日本語名  + ", " + parks[j].都道府県 ); 
-            } 
-
-            if (parks.length > 0) {
-                data[i]["name"] = parks[0].日本語名;
-                data[i]["locationDesc"] = pref.slice(0,-1);
-            }
-        }
-
-        return data;
-    }
-
-    //
-    // reloadfortable
-    //
-    // 一覧、ーブルに記載
-    //
-    function reloadfortable(){
-        $.getJSON("https://api.pota.app/spot/activator", function(data_json){
-
-            var rows = "";
-            var etcrows = "";
-            var jaactivators = "";
-            var activators = "";
-            var jadata_json;
-            
-            // クリアー
-            for ( i=fft8table.rows.length-1; i > 0; i--) {
-                fft8table.deleteRow(i); 
-            }
-            for ( i=fetctable.rows.length-1; i > 0; i--) {
-                fetctable.deleteRow(i); 
-            }
-            $("#jaactivators").text("");
-
-            // ソート
-            data_json.sort(function ( a, b ) {
-                var r = 0;
-
-                if( a.activator < b.activator ){ r = -1; } // activator 昇順
-                else { r = 1; }
-
-                return r;
-            });
-
-            data_json.sort(function ( a, b ) {
-                var r = 0;
-
-                if( a.mode < b.mode ){ r = -1; } // mode 昇順
-                else { r = 1; }
-
-                return r;
-            });
-            data_json.sort(function ( a, b ) {
-                var r = 0;
-
-                if( parseFloat(a.frequency) < parseFloat(b.frequency) ){ r = -1; } // frequency 昇順
-                else { r = 1; }
-
-                return r;
-            });
-
-            // 情報抽出
-            var matchData = data_json.filter(function(item, index){
-                if (item.mode == "FT8" || item.mode == "FT4" ) {
-                    if (item.reference.substr(0,2) == "JP") {
-                        return true;
-                    }
-                }
-            });
-            var etcData = data_json.filter(function(item, index){
-                if (item.mode != "FT8" && item.mode != "FT4" ) {
-                    if (item.reference.substr(0,2) == "JP") {
-                        return true;
-                    }
-                }
-            });
-
-            // テーブル の行作成
-            rows = MakeRow(matchData, fft8table);
-            $("#fft8table").append(rows); 
-            rows = MakeRow(etcData, fetctable);
-            $("#fetctable").append(rows);
-
-            // 日本語名へ置換え & QRT追加
-            g_data = replaceparks(matchData);
-            g_etcdata = replaceparks(etcData);
-            g_data = MakeQrt(g_data);
-            g_etcdata = MakeQrt(g_etcdata);
-
-            // テーブルを再書込み
-            rewrite(g_data, fft8table);
-            rewrite(g_etcdata, fetctable);
-
-            // 一覧の書込み
-            $("#jaactivators").text(MakeList(g_data));
-
+            // CSV入力イベントリスナー
+            document.getElementById('csvInput').addEventListener('change', handleFileUpload);
         });
-    }
 
-    // MakeRow
-    //
-    // テーブルの行を追加
-    //
-    function MakeRow(data, table)
-    {
-        var rows = "";
-        for (i = 0; i < data.length; i++) {
-            rows += "<tr>";
-            for ( j=0; j < table.tHead.rows[0].cells.length-1; j++) {
-
-                rows = rows + "<td>" + data[i][table.tHead.rows[0].cells[j].textContent] + "</td>";
-            }
-            rows = rows +  "<td> - </td>"; // サーバー側で空のqsos項目を作成
-            rows += "</tr>";  
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('ja-JP');
         }
 
-        return rows;
-    }
+        // --- 1. ハント情報の処理 (CSV & LocalStorage) ---
 
-    // MakeList
-    //
-    // QRT マーク追加
-    //
-    function MakeList(data)
-    {
-        if (data.length == 0) return "None";
-        
-        var list = "";
-        for (i = 0; i < data.length; i++)
-        {
-            if (data[i].mode.substr(0,1) != "＞")
-            {
-                list = list + data[i].activator + ","
+        // LocalStorageから読み込み
+        function loadHuntsFromStorage() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                try {
+                    state.hunts = JSON.parse(savedData);
+                    updateCsvStatus(Object.keys(state.hunts).length);
+                } catch (e) {
+                    console.error("保存データの読み込みに失敗しました", e);
+                    state.hunts = {};
+                    updateCsvStatus(0);
+                }
+            } else {
+                updateCsvStatus(0);
             }
         }
-        if (list == "")
-        {
-            return "None";
+
+        // CSVアップロード処理
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const parsedData = parseCSV(text);
+                
+                if (Object.keys(parsedData).length > 0) {
+                    state.hunts = parsedData;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.hunts));
+                    updateCsvStatus(Object.keys(state.hunts).length);
+                    // alert(`${Object.keys(state.hunts).length} 件のハント情報を読み込み、保存しました。`); // alertを避ける
+                    console.log(`${Object.keys(state.hunts).length} 件のハント情報を読み込み、保存しました。`);
+                    renderTable(); // 表示更新
+                } else {
+                    // alert('有効なデータが見つかりませんでした。CSVに「Reference」と「QSOs」列が含まれているか確認してください。'); // alertを避ける
+                    console.error('有効なデータが見つかりませんでした。CSVに「Reference」と「QSOs」列が含まれているか確認してください。');
+                }
+            };
+            reader.readAsText(file);
+            // inputをリセット（同じファイルを再度選べるように）
+            event.target.value = '';
         }
-        else
-        {
-            return list.slice(0,-1)
+
+        // CSVパース処理
+        function parseCSV(csvText) {
+            const lines = csvText.split(/\r\n|\n/);
+            const result = {};
+            let headers = [];
+            
+            // ヘッダー行を探す
+            if (lines.length > 0) {
+                headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            }
+
+            const refIndex = headers.findIndex(h => h.toLowerCase() === 'reference');
+            const qsoIndex = headers.findIndex(h => h.toLowerCase() === 'qsos');
+
+            if (refIndex === -1) {
+                console.error("CSV Header 'Reference' not found.");
+                return {};
+            }
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // 簡易的なCSV分割 (引用符内のカンマは考慮しない簡易実装)
+                const columns = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                
+                if (columns.length > refIndex) {
+                    const ref = columns[refIndex];
+                    // QSOs列がない場合は0、あれば数値化
+                    const qsos = (qsoIndex !== -1 && columns.length > qsoIndex) 
+                                 ? parseInt(columns[qsoIndex]) || 0 
+                                 : 0;
+                    
+                    if (ref) {
+                        // 既存の値を上書き（最新のログファイルが優先される想定）
+                        result[ref] = qsos;
+                    }
+                }
+            }
+            return result;
         }
-    }
-    // MakeQrt
-    //
-    // QRT マーク追加
-    //
-    function MakeQrt(data)
-    {
-        // QRT のコールサインを変更
-        for (i = 0; i < data.length; i++) {
-            if (data[i]["comments"].toUpperCase().includes("QRT")) {
-                data[i]["mode"] = "＞" + data[i]["mode"];
+
+        function updateCsvStatus(count) {
+            const el = document.getElementById('csvStatus');
+            if (count > 0) {
+                el.className = "text-sm p-3 bg-green-50 text-green-800 rounded border border-green-200 flex items-center gap-2";
+                el.innerHTML = `<i class="fa-solid fa-check-circle"></i> <span>保存済みデータ: <strong>${count}</strong> 件の公園情報を利用中</span>`;
+            } else {
+                el.className = "text-sm p-3 bg-yellow-50 text-yellow-800 rounded border border-yellow-200";
+                el.innerHTML = "データがありません。hunter_parks.csv を読み込んでください。";
             }
         }
-        data.sort(function ( a, b ) {
-                var r = 0;
 
-                if( a.mode < b.mode ){ r = -1; } // mode 昇順
-                else { r = 1; }
+        function clearCsvData() {
+            // NOTE: confirm()はCanvas環境では非推奨ですが、ここでは既存のコードを踏襲します
+            if(confirm('保存されたハント情報を削除しますか？')) {
+                localStorage.removeItem(STORAGE_KEY);
+                state.hunts = {};
+                updateCsvStatus(0);
+                renderTable();
+            }
+        }
 
-                return r;
+        // --- 2. スポット情報の取得 (API) ---
+
+        async function fetchSpots() {
+            const loadingEl = document.getElementById('loadingIndicator');
+            loadingEl.classList.remove('hidden');
+
+            try {
+                const response = await fetch(POTA_API_URL);
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                state.spots = data;
+                
+                // メタデータの更新
+                document.getElementById('spotCount').textContent = data.length;
+                const now = new Date();
+                document.getElementById('lastUpdated').textContent = now.toLocaleTimeString('ja-JP');
+
+                // APIからデータを取得した後、現在のソートキーでソートしてから表示
+                sortSpots(state.sortKey, true); // trueでソート方向を維持してソート
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                document.getElementById('spotTableBody').innerHTML = `
+                    <tr><td colspan="5" class="px-6 py-4 text-center text-red-500">
+                        データの取得に失敗しました。<br>しばらく待ってから再試行してください。
+                    </td></tr>
+                `;
+            } finally {
+                loadingEl.classList.add('hidden');
+            }
+        }
+
+        // --- データのソート処理 ---
+        function sortSpots(key, force = false) {
+            // キーが変更された場合、ソート方向を初期化 (desc)
+            if (state.sortKey !== key) {
+                state.sortKey = key;
+                state.sortDirection = 'desc';
+            } 
+            // キーが同じで、かつ強制ソートではない場合、ソート方向を反転
+            else if (!force) {
+                state.sortDirection = state.sortDirection === 'desc' ? 'asc' : 'desc';
+            }
+
+            const directionMultiplier = state.sortDirection === 'asc' ? 1 : -1;
+
+            state.spots.sort((a, b) => {
+                let valA, valB;
+
+                switch (key) {
+                    case 'myQSOs':
+                        // myQSOsは計算値なので、ここで計算して比較
+                        valA = state.hunts[a.reference] !== undefined ? state.hunts[a.reference] : 0;
+                        valB = state.hunts[b.reference] !== undefined ? state.hunts[b.reference] : 0;
+                        break;
+                    case 'spotTime':
+                        // 日付/時刻はそのまま比較 (新しいものが上=descが望ましい)
+                        valA = a.spotTime;
+                        valB = b.spotTime;
+                        break;
+                    case 'activator':
+                    case 'reference':
+                        // 文字列は小文字にして比較
+                        valA = (a[key] || '').toLowerCase();
+                        valB = (b[key] || '').toLowerCase();
+                        break;
+                    default:
+                        // ソートキーが無効な場合は比較しない
+                        return 0;
+                }
+
+                if (valA < valB) {
+                    return -1 * directionMultiplier;
+                }
+                if (valA > valB) {
+                    return 1 * directionMultiplier;
+                }
+                return 0;
             });
 
-        return data;
-    }
-
-    // rewrite
-    //
-    // 既存のテーブルを書き換え
-    //
-    function rewrite(data_json, table) {
-        for (i = 0; i < data_json.length; i++) {
-            for ( j=0; j < table.tHead.rows[0].cells.length; j++) {
-                table.rows[i+1].cells[j].innerText = data_json[i][table.tHead.rows[0].cells[j].textContent] ;
-            }
-           // table.rows[i+1].cells[j].innerText = MakeQsos(data_json[i][table.tHead.rows[0].cells[3].textContent]);
-        }
-    }
-
-    // MakeQsos
-    //
-    // 交信数を取得
-    //
-    function MakeQsos(data)
-    {
-        var qsos = data;
-        
-        return qsos;
-    }
-
-    // sortOnClick
-    //
-    // 並べ替え
-    //
-//    function sortOnClick(obj, data, table) {
-    function sortOnClick(obj) {
-
-        var table = obj.parentElement.parentElement.parentElement.parentElement;
-        var key = obj.innerText;
-
-        if (table.id == "fft8table")
-        {
-            var data = g_data;
-        }
-        else
-        {
-            var data = g_etcdata;
+            renderTable();
         }
 
-        if (key == "frequency") {
-            data.sort(function ( a, b ){
-                var r = 0;
-            
-                if( parseFloat(a[key]) < parseFloat(b[key]) ){ r = -1; }
-                else { r = 1; }
-                return r;
-            });    
+        // --- 3. データの結合と表示 ---
 
-        } else {
-            data.sort(function ( a, b ){
-                var r = 0;
-            
-                if( a[key] < b[key] ){ r = -1; }
-                else { r = 1; }
-                return r;
+        function updateSortIcons() {
+            // 全てのアイコンをリセット
+            document.querySelectorAll('[id^="sort-icon-"]').forEach(icon => {
+                icon.innerHTML = '';
+                icon.classList.add('opacity-40');
             });
 
+            // 現在のソートキーのアイコンを更新
+            const iconEl = document.getElementById(`sort-icon-${state.sortKey}`);
+            if (iconEl) {
+                iconEl.innerHTML = state.sortDirection === 'asc' 
+                    ? '<i class="fa-solid fa-arrow-up text-xs"></i>' 
+                    : '<i class="fa-solid fa-arrow-down text-xs"></i>';
+                iconEl.classList.remove('opacity-40');
+                
+                // ソート中のヘッダーの強調
+                document.querySelectorAll('th[id^="sort"]').forEach(th => {
+                    th.classList.remove('text-gray-900', 'font-semibold');
+                    th.classList.add('text-gray-500', 'font-medium');
+                });
+                // ヘッダーIDは 'sort' + Keyの頭文字大文字 (例: sortTime)
+                const thEl = document.getElementById(`sort${state.sortKey.charAt(0).toUpperCase() + state.sortKey.slice(1)}`);
+                if (thEl) {
+                    thEl.classList.add('text-gray-900', 'font-semibold');
+                    thEl.classList.remove('text-gray-500', 'font-medium');
+                }
+            }
         }
-    
-        rewrite(data, table);
-    }
 
+        function renderTable() {
+            const tbody = document.getElementById('spotTableBody');
+            
+            // ソートアイコンの更新
+            updateSortIcons();
 
-</script>
+            if (state.spots.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">現在のスポットはありません</td></tr>`;
+                return;
+            }
 
+            let html = '';
+
+            // ソート済みのstate.spotsを利用して表示
+            state.spots.forEach(spot => {
+                // ハント情報との照合
+                const myQSOs = state.hunts[spot.reference] !== undefined ? state.hunts[spot.reference] : 0;
+                
+                // 未交信（New One）かどうかでスタイル変更
+                const isNewOne = myQSOs === 0;
+                const rowClass = isNewOne ? "bg-green-50 hover:bg-green-100" : "hover:bg-gray-50 text-gray-600";
+                const qsoBadgeClass = isNewOne 
+                    ? "bg-green-100 text-green-800 border-green-200" 
+                    : "bg-gray-100 text-gray-600 border-gray-200";
+
+                // スポット時間の整形
+                const timeStr = spot.spotTime ? spot.spotTime.substring(11, 16) : "--:--";
+
+                html += `
+                    <tr class="transition-colors duration-150 border-b border-gray-100 animate-fade-in ${rowClass}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">
+                            ${timeStr} <span class="text-xs text-gray-400">UTC</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-bold text-gray-900">${spot.activator}</div>
+                            <div class="text-xs text-gray-500">${spot.mode || ''} / ${spot.frequency || ''}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                ${spot.reference}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900 line-clamp-1" title="${spot.name}">${spot.name}</div>
+                            <div class="text-xs text-gray-500 truncate" title="${spot.locationDesc}">${spot.locationDesc}</div>
+                            ${spot.comments ? `<div class="text-xs text-gray-400 mt-1 italic line-clamp-1">"${spot.comments}"</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="flex flex-col items-end">
+                                <span class="px-3 py-1 inline-flex text-sm font-bold rounded-md border ${qsoBadgeClass}">
+                                    ${myQSOs} QSOs
+                                </span>
+                                ${isNewOne ? '<span class="text-xs text-green-600 font-bold mt-1">NEW!</span>' : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+    </script>
+</body>
 </html>
