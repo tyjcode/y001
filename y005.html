@@ -22,7 +22,18 @@
       color: var(--fg);
     }
     h1, h3 { color: var(--fg); }
-    .summary { padding: 8px; background: var(--panel); border-radius: 6px; margin-bottom: 12px; }
+    .summary {
+      padding: 8px;
+      background: var(--panel);
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      width: 100%;
+      box-sizing: border-box;
+      resize: none;
+      border: 1px solid var(--border);
+      color: var(--fg);
+    }
     .controls { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; }
 
     table { border-collapse: collapse; width: auto; margin-bottom: 24px; table-layout: auto; background: var(--panel); }
@@ -90,7 +101,7 @@
 </head>
 <body>
 <h1>POTA ハントツール</h1>
-<div class="summary" id="summary">loading...</div>
+<div class="summary" id="summary"></div>
 
 <div class="controls">
   <label>
@@ -225,9 +236,10 @@ function render() {
   const jpOnly = document.getElementById('jpOnly').checked;
   let filtered = spots.filter(s => !jpOnly || (s.reference && s.reference.startsWith('JP-')));
 
-  const summaryActs = filtered.filter(s => ['FT8','FT4','>FT8','>FT4'].includes(s.mode))
-    .map(s => s.activator);
-  document.getElementById('summary').textContent = summaryActs.join(', ');
+  const summaryActs = filtered
+    .filter(s => ['FT8','FT4','>FT8','>FT4'].includes(s.mode))
+    .map(s => (s.activator || '').trim());
+  document.getElementById('summary').textContent = summaryActs.join(',');
 
   
 
