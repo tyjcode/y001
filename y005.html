@@ -133,9 +133,13 @@ let spots = [];
 let hunterMap = {};
 let prefMap = {};
 let parkCache = {};
-let sortKey = 'mode';
-let sortAsc = false;
 let warnings = [];
+
+// テーブル別ソート状態
+let sortState = {
+  digital: { key: 'mode', asc: false },
+  other:   { key: 'mode', asc: false }
+};
 
 // ---------- 初期化 ----------
 init();
@@ -225,22 +229,19 @@ function render() {
     .map(s => s.activator);
   document.getElementById('summary').textContent = summaryActs.join(', ');
 
-  filtered.sort((a,b) => {
-    let va = a[sortKey] || '';
-    let vb = b[sortKey] || '';
-    if (va < vb) return sortAsc ? -1 : 1;
-    if (va > vb) return sortAsc ? 1 : -1;
-    return 0;
-  });
+  
 
   const digital = filtered.filter(s => ['FT8','FT4','>FT8','>FT4'].includes(s.mode));
   const other = filtered.filter(s => !['FT8','FT4','>FT8','>FT4'].includes(s.mode));
 
-  renderTable('tableDigital', digital);
-  renderTable('tableOther', other);
+  sortRows(digital, 'digital');
+  sortRows(other, 'other');
+
+  renderTable('tableDigital', digital, 'digital');
+  renderTable('tableOther', other, 'other');
 }
 
-function renderTable(id, rows) {
+function renderTable(id, rows, tableKey) {
   const table = document.getElementById(id);
   table.innerHTML = '';
   const headers = ['mode','frequency','activator','reference','name','locationDesc','qsos'];
@@ -248,9 +249,11 @@ function renderTable(id, rows) {
   headers.forEach(h => {
     const th = document.createElement('th');
     th.textContent = h;
-    if (sortKey === h) th.className = sortAsc ? 'sorted-asc':'sorted-desc';
+    if (sortState[tableKey].key === h) th.className = sortState[tableKey].asc ? 'sorted-asc':'sorted-desc';
     th.onclick = () => {
-      if (sortKey === h) sortAsc = !sortAsc; else { sortKey = h; sortAsc = true; }
+      const state = sortState[tableKey];
+      if (state.key === h) state.asc = !state.asc;
+      else { state.key = h; state.asc = true; }
       render();
     };
     thead.appendChild(th);
@@ -265,6 +268,17 @@ function renderTable(id, rows) {
       tr.appendChild(td);
     });
     table.appendChild(tr);
+  });
+}
+
+function sortRows(rows, tableKey) {
+  const { key, asc } = sortState[tableKey];
+  rows.sort((a,b) => {
+    let va = a[key] ?? '';
+    let vb = b[key] ?? '';
+    if (va < vb) return asc ? -1 : 1;
+    if (va > vb) return asc ? 1 : -1;
+    return 0;
   });
 }
 
