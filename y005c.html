@@ -229,7 +229,12 @@ async function update(){
     const r=new FileReader(); r.onload=()=>{ parseCSV(r.result); update(); };
     r.readAsText(f);
   };
+
+  // 初回ロード
   update();
+
+  // 1分毎にスポット情報を自動更新
+  setInterval(update, 60 * 1000);
 })();
 </script>
 </body>
