@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>y005 Hunt Tool</title>
+  <style>
+    :root{color-scheme:dark}
+    body{margin:0;padding:8px;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0f1115;color:#e5e7eb}
+    header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    h1{font-size:14px;margin:0;opacity:.8}
+    .muted{font-size:11px;opacity:.6}
+    .spacer{flex:1}
+    button{background:#1f2937;color:#e5e7eb;border:0;border-radius:6px;padding:6px 10px;font-size:12px}
+    button.blue{background:#2563eb}
+    button.red{background:#b91c1c}
+    button.ghost{background:#111827}
+    .summary{margin:6px 0 8px;font-size:12px;opacity:.9}
+    table{border-collapse:collapse;width:max-content;max-width:100%;table-layout:auto}
+    thead th{cursor:pointer;font-size:11px;opacity:.8;padding:4px 6px;text-align:left}
+    tbody td{padding:3px 6px;font-size:12px;white-space:nowrap}
+    .section{margin-top:10px}
+    .status{font-size:11px;opacity:.7}
+    dialog{background:#0b1220;color:#e5e7eb;border:1px solid #1f2937;border-radius:10px;padding:10px}
+    dialog::backdrop{background:rgba(0,0,0,.6)}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+<header>
+  <h1>y005 Hunt Tool</h1>
+  <label class="row muted"><input id="jpOnly" type="checkbox" checked> Japan only</label>
+  <button id="reload" class="ghost">Reload</button>
+  <button id="maint" class="ghost">Maintenance</button>
+  <div class="spacer"></div>
+  <div id="status" class="status">—</div>
+</header>
+
+<div id="summary" class="summary"></div>
+
+<div class="section">
+  <div class="muted">FT8 / FT4</div>
+  <table id="tblDigital">
+    <thead><tr>
+      <th data-k="mode">mode</th>
+      <th data-k="frequency">frequency</th>
+      <th data-k="activator">activator</th>
+      <th data-k="reference">reference</th>
+      <th data-k="name">name</th>
+      <th data-k="locationDesc">location</th>
+      <th data-k="qsos">qsos</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="muted">Others</div>
+  <table id="tblOther">
+    <thead><tr>
+      <th data-k="mode">mode</th>
+      <th data-k="frequency">frequency</th>
+      <th data-k="activator">activator</th>
+      <th data-k="reference">reference</th>
+      <th data-k="name">name</th>
+      <th data-k="locationDesc">location</th>
+      <th data-k="qsos">qsos</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<dialog id="dlg">
+  <div class="row"><strong>Maintenance</strong><span class="spacer"></span><button id="closeDlg">Close</button></div>
+  <div class="row" style="margin-top:8px">
+    <button id="clearParks" class="red">Clear Park Cache</button>
+    <input id="csv" type="file" accept=".csv" />
+    <button id="loadCsv" class="blue">Load CSV</button>
+  </div>
+  <div class="muted" style="margin-top:6px">My Stats / Hunted Parks / [EXPORT CSV]</div>
+</dialog>
+
+<script>
+const API_SPOT = 'https://api.pota.app/spot/activator';
+const API_PARK = 'https://api.pota.app/park/';
+const API_PREF = 'https://tyjcode.github.io/y001/prefectures.json';
+
+let prefs = [];
+let hunts = new Map();
+let parkCache = JSON.parse(localStorage.getItem('parks') || '{}');
+let sortState = { digital:{k:'frequency',dir:1}, other:{k:'frequency',dir:1} };
+
+const el = (id)=>document.getElementById(id);
+
+async function loadPrefs(){
+  prefs = await (await fetch(API_PREF)).json();
+}
+
+// CSV parser with proper newline RegExp (FIXED)
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/); // ← 修正点
+  const parseLine = (line)=>{
+    const res=[]; let cur=''; let q=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){ q=!q; continue; }
+      if(c===',' && !q){ res.push(cur); cur=''; continue; }
+      cur+=c;
+    }
+    res.push(cur);
+    return res.map(s=>s.trim());
+  };
+
+  const rows = lines.map(parseLine);
+  const head = rows.shift().map(h=>h.replace(/^"|"$/g,''));
+  const idxRef = head.findIndex(h=>h.toLowerCase()==='reference');
+  const idxQ   = head.findIndex(h=>h.toLowerCase()==='qsos');
+  if(idxRef < 0 || idxQ < 0) return;
+
+  hunts.clear();
+  rows.forEach(r=>{
+    const ref = r[idxRef];
+    if(!ref) return;
+    hunts.set(ref, Number(r[idxQ] || 0));
+  });
+
+  localStorage.setItem('hunts', JSON.stringify(Object.fromEntries(hunts)));
+}
+
+async function loadSpots(){
+  return await (await fetch(API_SPOT)).json();
+}
+
+async function parkName(ref){
+  if(!ref?.startsWith('JP-')) return null;
+  if(parkCache[ref]) return parkCache[ref];
+  try{
+    const j = await (await fetch(API_PARK + ref)).json();
+    parkCache[ref] = j.parkComments || null;
+    localStorage.setItem('parks', JSON.stringify(parkCache));
+    return parkCache[ref];
+  }catch{
+    return null;
+  }
+}
+
+function jpLoc(desc){
+  if(!desc?.startsWith('JP-')) return desc;
+  return desc.split(',').map(d=>{
+    const f = prefs.find(p=>p.locationDesc===d);
+    return f ? f.都道府県名 : d;
+  }).join(',');
+}
+
+async function enhance(spots){
+  return Promise.all(spots.map(async s=>{
+    const qs = hunts.get(s.reference) || 0;
+    let name = s.name;
+    const pn = await parkName(s.reference);
+    if(pn) name = pn;
+    let mode = s.mode;
+    if((s.comments||'').toUpperCase().includes('QRT')) mode = '>' + mode;
+    return {...s, qsos:qs, name, locationDesc: jpLoc(s.locationDesc), mode};
+  }));
+}
+
+function sortBy(arr,k,dir){
+  return arr.sort((a,b)=>{
+    const av=a[k]??''; const bv=b[k]??'';
+    if(!isNaN(av)&&!isNaN(bv)) return dir*(Number(av)-Number(bv));
+    return dir*String(av).localeCompare(String(bv));
+  });
+}
+
+function render(tbl, rows){
+  const tb = tbl.querySelector('tbody');
+  tb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    ['mode','frequency','activator','reference','name','locationDesc','qsos'].forEach(k=>{
+      const td=document.createElement('td'); td.textContent=r[k]; tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+
+function bindSort(tbl,key){
+  tbl.querySelectorAll('th').forEach(th=>th.onclick=()=>{
+    const s = sortState[key];
+    s.dir = (s.k===th.dataset.k)? -s.dir : 1;
+    s.k = th.dataset.k;
+    update();
+  });
+}
+
+async function update(){
+  el('status').textContent='loading…';
+  const spots = await loadSpots();
+  const jpOnly = el('jpOnly').checked;
+  const filtered = spots.filter(s=>!jpOnly || s.reference?.startsWith('JP-'));
+  const enh = await enhance(filtered);
+
+  const digital = enh.filter(r=>['FT8','FT4','>FT8','>FT4'].includes(r.mode));
+  const other   = enh.filter(r=>!['FT8','FT4','>FT8','>FT4'].includes(r.mode));
+
+  sortBy(digital, sortState.digital.k, sortState.digital.dir);
+  sortBy(other, sortState.other.k, sortState.other.dir);
+
+  render(el('tblDigital'), digital);
+  render(el('tblOther'), other);
+
+  el('summary').textContent = [...new Set(digital.filter(r=>!r.mode.startsWith('>')).map(r=>r.activator))].join(',');
+  el('status').textContent = `parks:${Object.keys(parkCache).length} hunts:${hunts.size}`;
+}
+
+(async()=>{
+  await loadPrefs();
+  hunts = new Map(Object.entries(JSON.parse(localStorage.getItem('hunts')||'{}')));
+  bindSort(el('tblDigital'),'digital');
+  bindSort(el('tblOther'),'other');
+  el('reload').onclick=update;
+  el('jpOnly').onchange=update;
+  el('maint').onclick=()=>el('dlg').showModal();
+  el('closeDlg').onclick=()=>el('dlg').close();
+  el('clearParks').onclick=()=>{ parkCache={}; localStorage.removeItem('parks'); update(); };
+  el('loadCsv').onclick=()=>{
+    const f=el('csv').files[0]; if(!f) return;
+    const r=new FileReader(); r.onload=()=>{ parseCSV(r.result); update(); };
+    r.readAsText(f);
+  };
+  update();
+})();
+</script>
+</body>
+</html>
