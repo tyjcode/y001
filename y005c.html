@@ -18,6 +18,7 @@
     .summary{margin:6px 0 8px;font-size:12px;opacity:.9}
     table{border-collapse:collapse;width:max-content;max-width:100%;table-layout:auto}
     thead th{cursor:pointer;font-size:11px;opacity:.8;padding:4px 6px;text-align:left}
+    thead th[data-k="qsos"], tbody td.qsos{ text-align:right }
     tbody td{padding:3px 6px;font-size:12px;white-space:nowrap}
     .section{margin-top:10px}
     .status{font-size:11px;opacity:.7}
@@ -178,7 +179,7 @@ function render(tbl, rows){
   rows.forEach(r=>{
     const tr=document.createElement('tr');
     ['mode','frequency','activator','reference','name','locationDesc','qsos'].forEach(k=>{
-      const td=document.createElement('td'); td.textContent=r[k]; tr.appendChild(td);
+      const td=document.createElement('td'); td.textContent=r[k]; if(k==='qsos') td.className='qsos'; tr.appendChild(td);
     });
     tb.appendChild(tr);
   });
