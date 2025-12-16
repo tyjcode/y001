@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>y005 - POTA Hunt Tool Reimagined</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-main: #e0e0e0;
+            --text-sub: #a0a0a0;
+            --table-header-bg: #2c2c2c;
+            --table-row-bg: #1e1e1e;
+            --table-row-alt: #252525;
+            --accent-color: #4caf50;
+            --border-color: #333;
+            --highlight-color: #ff9800;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        /* Utility */
+        .hidden { display: none !important; }
+        .text-small { font-size: 0.85em; color: var(--text-sub); }
+        .flex-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .flex-between { justify-content: space-between; }
+        
+        /* Header & Controls */
+        header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            /* 罫線を削除 */
+            border-bottom: none; 
+        }
+
+        h1 { margin: 0; font-size: 1.2rem; display: inline-block; margin-right: 15px; }
+
+        button {
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover { background-color: #444; }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+            background-color: #555;
+            border-radius: 20px;
+            margin-right: 8px;
+            transition: background 0.3s;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        .toggle-checkbox:checked + .toggle-switch { background-color: var(--accent-color); }
+        .toggle-checkbox:checked + .toggle-switch::after { transform: translateX(20px); }
+        .toggle-checkbox { display: none; }
+
+        /* Summary Area */
+        #activator-summary {
+            margin: 10px 0;
+            padding: 8px;
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-size: 0.9em;
+            color: var(--highlight-color);
+        }
+
+        /* Tables */
+        .table-container { margin-bottom: 20px; overflow-x: auto; }
+        h2 { font-size: 1rem; margin: 10px 0 5px; color: var(--accent-color); border-left: 3px solid var(--accent-color); padding-left: 8px; }
+
+        table {
+            /* コンテンツに応じて幅を決定 */
+            width: auto;
+            /* 罫線を削除 */
+            border-collapse: separate; 
+            border-spacing: 0; /* 隙間も削除 */
+            font-size: 0.95rem;
+            table-layout: auto;
+        }
+
+        th, td {
+            padding: 6px 8px;
+            text-align: left;
+            /* 罫線を削除 */
+            border-bottom: none; 
+            /* 全ての列で折り返しを禁止し、文字数に応じた幅を確保する */
+            white-space: nowrap; 
+        }
+
+        th {
+            background-color: var(--table-header-bg);
+            cursor: pointer;
+            user-select: none;
+            position: sticky;
+            top: 0;
+        }
+        th:hover { background-color: #3a3a3a; }
+        th::after { content: ' \21F3'; opacity: 0.3; font-size: 0.8em; } /* Sort icon placeholder */
+
+        tr:nth-child(even) { background-color: var(--table-row-bg); }
+        tr:nth-child(odd) { background-color: var(--table-row-alt); }
+        tr:hover { background-color: #333; }
+
+        /* Column specific adjustments */
+        /* width指定を削除し、コンテンツに応じた幅にする */
+        .col-mode { } 
+        .col-freq { text-align: right; font-family: monospace; }
+        .col-call { font-weight: bold; color: #81d4fa; }
+        .col-ref { } 
+        .col-name { } 
+        .col-loc { }
+        .col-qsos { text-align: right; } 
+        
+        /* Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid #444;
+        }
+        .modal-header { font-size: 1.1em; margin-bottom: 15px; font-weight: bold; }
+        .modal-body { margin-bottom: 20px; }
+        .status-indicator {
+            display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-red { background-color: #f44336; }
+        .status-blue { background-color: #2196f3; }
+        
+        .close-btn { float: right; cursor: pointer; font-size: 1.5em; line-height: 0.5; }
+
+        /* Status Bar */
+        #app-status { margin-left: auto; font-size: 0.8rem; color: #888; }
+        
+    </style>
+</head>
+<body>
+
+<header class="flex-row flex-between">
+    <div class="flex-row">
+        <h1>y005 Hunt Tool</h1>
+        
+        <label class="toggle-container">
+            <input type="checkbox" id="toggle-japan" class="toggle-checkbox" checked>
+            <div class="toggle-switch"></div>
+            <span>Japan Only</span>
+        </label>
+        
+        <button id="btn-refresh" title="Reload Spots">↻</button>
+    </div>
+
+    <div class="flex-row">
+        <span id="app-status">Initializing...</span>
+        <button id="btn-maintenance">Maintenance</button>
+    </div>
+</header>
+
+<div id="activator-summary" class="hidden">
+    <!-- FT8/FT4 Activators list will go here -->
+</div>
+
+<div id="tables-area">
+    <div id="table-digital-container" class="table-container">
+        <h2>FT8 / FT4</h2>
+        <table id="table-digital">
+            <thead>
+                <tr>
+                    <th data-col="mode">Mode</th>
+                    <th data-col="frequency">Freq</th>
+                    <th data-col="activator">Activator</th>
+                    <th data-col="reference">Ref</th>
+                    <th data-col="name">Name</th>
+                    <th data-col="locationDesc">Loc</th>
+                    <th data-col="qsos">QSOs</th>
+                </tr>
+            </thead>
+            <tbody><!-- Rows --></tbody>
+        </table>
+    </div>
+
+    <div id="table-other-container" class="table-container">
+        <h2>SSB / CW / Others</h2>
+        <table id="table-other">
+            <thead>
+                <tr>
+                    <th data-col="mode">Mode</th>
+                    <th data-col="frequency">Freq</th>
+                    <th data-col="activator">Activator</th>
+                    <th data-col="reference">Ref</th>
+                    <th data-col="name">Name</th>
+                    <th data-col="locationDesc">Loc</th>
+                    <th data-col="qsos">QSOs</th>
+                </tr>
+            </thead>
+            <tbody><!-- Rows --></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Maintenance Modal -->
+<div id="maintenance-modal" class="modal hidden">
+    <div class="modal-content">
+        <span class="close-btn" id="modal-close">&times;</span>
+        <div class="modal-header">Maintenance / Settings</div>
+        
+        <div class="modal-body">
+            <p>
+                <span id="cache-status-indicator" class="status-indicator status-red"></span>
+                <span id="cache-status-text">Hunted Data Cache: Empty</span>
+            </p>
+            
+            <div style="margin-top: 15px; border-top: 1px solid #444; padding-top:10px;">
+                <label style="display:block; margin-bottom:5px;">Load "hunter_parks.csv":</label>
+                <input type="file" id="csv-file-input" accept=".csv">
+                <button id="btn-clear-cache" style="margin-top: 10px; background-color: #d32f2f;">Clear Cache</button>
+            </div>
+
+            <p class="text-small" style="margin-top: 15px; line-height: 1.4;">
+                My Stats / Hunted Parks / [EXPORT CSV]ボタンで、ダウンロードしたファイル
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * y005 - POTA Hunt Tool Reimagined
+ * Single File Implementation
+ */
+
+// --- Constants & Config ---
+const API_SPOTS = "https://api.pota.app/spot/activator";
+const API_PARK_REF_BASE = "https://api.pota.app/park/";
+// API_PREFECTURES is replaced by embedded data to prevent CORS errors
+const LOCAL_STORAGE_KEY = "y005_hunted_data";
+const REFRESH_INTERVAL = 60000; // 1 minute
+
+// Embedded Prefecture Data (Fallback/Primary to avoid fetch errors)
+// Includes both numeric (JP-01) and letter (JP-HK) codes for robustness.
+const EMBEDDED_PREFECTURES = [
+    { "locationDesc": "JP-HK", "都道府県名": "北海道" },
+    { "locationDesc": "JP-AO", "都道府県名": "青森県" },
+    { "locationDesc": "JP-IW", "都道府県名": "岩手県" },
+    { "locationDesc": "JP-MG", "都道府県名": "宮城県" },
+    { "locationDesc": "JP-AK", "都道府県名": "秋田県" },
+    { "locationDesc": "JP-YT", "都道府県名": "山形県" }, // 修正: JP-Y -> JP-YT
+    { "locationDesc": "JP-FS", "都道府県名": "福島県" },
+    { "locationDesc": "JP-IB", "都道府県名": "茨城県" },
+    { "locationDesc": "JP-TC", "都道府県名": "栃木県" },
+    { "locationDesc": "JP-GM", "都道府県名": "群馬県" },
+    { "locationDesc": "JP-ST", "都道府県名": "埼玉県" },
+    { "locationDesc": "JP-CH", "都道府県名": "千葉県" },
+    { "locationDesc": "JP-TK", "都道府県名": "東京都" },
+    { "locationDesc": "JP-KN", "都道府県名": "神奈川県" },
+    { "locationDesc": "JP-NI", "都道府県名": "新潟県" },
+    { "locationDesc": "JP-TY", "都道府県名": "富山県" },
+    { "locationDesc": "JP-IS", "都道府県名": "石川県" },
+    { "locationDesc": "JP-FI", "都道府県名": "福井県" },
+    { "locationDesc": "JP-YN", "都道府県名": "山梨県" },
+    { "locationDesc": "JP-NN", "都道府県名": "長野県" }, // 修正: JP-NA -> JP-NN
+    { "locationDesc": "JP-GF", "都道府県名": "岐阜県" },
+    { "locationDesc": "JP-SZ", "都道府県名": "静岡県" },
+    { "locationDesc": "JP-AI", "都道府県名": "愛知県" },
+    { "locationDesc": "JP-ME", "都道府県名": "三重県" },
+    { "locationDesc": "JP-SH", "都道府県名": "滋賀県" }, // 修正: JP-SI -> JP-SH
+    { "locationDesc": "JP-KY", "都道府県名": "京都府" },
+    { "locationDesc": "JP-OS", "都道府県名": "大阪府" },
+    { "locationDesc": "JP-HG", "都道府県名": "兵庫県" },
+    { "locationDesc": "JP-NR", "都道府県名": "奈良県" },
+    { "locationDesc": "JP-WK", "都道府県名": "和歌山県" },
+    { "locationDesc": "JP-TT", "都道府県名": "鳥取県" },
+    { "locationDesc": "JP-SM", "都道府県名": "島根県" },
+    { "locationDesc": "JP-OY", "都道府県名": "岡山県" },
+    { "locationDesc": "JP-HS", "都道府県名": "広島県" },
+    { "locationDesc": "JP-YC", "都道府県名": "山口県" }, // 修正: JP-YA -> JP-YC
+    { "locationDesc": "JP-TS", "都道府県名": "徳島県" },
+    { "locationDesc": "JP-KG", "都道府県名": "香川県" }, // 修正: JP-KA -> JP-KG (添付ファイル準拠)
+    { "locationDesc": "JP-EH", "都道府県名": "愛媛県" },
+    { "locationDesc": "JP-KC", "都道府県名": "高知県" }, // 修正: JP-KO -> JP-KC
+    { "locationDesc": "JP-FO", "都道府県名": "福岡県" },
+    { "locationDesc": "JP-SG", "都道府県名": "佐賀県" },
+    { "locationDesc": "JP-NS", "都道府県名": "長崎県" },
+    { "locationDesc": "JP-KM", "都道府県名": "熊本県" },
+    { "locationDesc": "JP-OT", "都道府県名": "大分県" }, // 修正: JP-OI -> JP-OT
+    { "locationDesc": "JP-MZ", "都道府県名": "宮崎県" },
+    { "locationDesc": "JP-KS", "都道府県名": "鹿児島県" }, // 修正: JP-KG -> JP-KS
+    { "locationDesc": "JP-ON", "都道府県名": "沖縄県" }
+];
+
+// --- State Management ---
+const state = {
+    spots: [],
+    huntedMap: new Map(), // Ref -> QSOs
+    prefectures: [], // Array of pref objects
+    parkCache: new Map(), // Ref -> ParkDetails
+    isJapanOnly: true,
+    sortCol: 'frequency',
+    sortAsc: true, // true for Asc, false for Desc. Default Freq is Asc.
+    lastUpdate: null
+};
+
+// --- DOM Elements ---
+const dom = {
+    tables: {
+        digital: document.querySelector('#table-digital tbody'),
+        other: document.querySelector('#table-other tbody')
+    },
+    toggleJapan: document.getElementById('toggle-japan'),
+    summary: document.getElementById('activator-summary'),
+    status: document.getElementById('app-status'),
+    btnRefresh: document.getElementById('btn-refresh'),
+    btnMaint: document.getElementById('btn-maintenance'),
+    modal: document.getElementById('maintenance-modal'),
+    modalClose: document.getElementById('modal-close'),
+    csvInput: document.getElementById('csv-file-input'),
+    cacheStatusInd: document.getElementById('cache-status-indicator'),
+    cacheStatusText: document.getElementById('cache-status-text'),
+    btnClearCache: document.getElementById('btn-clear-cache'),
+    headers: document.querySelectorAll('th')
+};
+
+// --- Initialization ---
+async function init() {
+    loadHuntedDataFromStorage();
+    // Using synchronous load for embedded data
+    fetchPrefectures(); 
+    
+    // Initial fetch
+    await updateSpots();
+
+    // Event Listeners
+    dom.toggleJapan.addEventListener('change', (e) => {
+        state.isJapanOnly = e.target.checked;
+        render();
+    });
+
+    dom.btnRefresh.addEventListener('click', updateSpots);
+    
+    dom.btnMaint.addEventListener('click', () => {
+        updateModalStatus();
+        dom.modal.classList.remove('hidden');
+    });
+    
+    dom.modalClose.addEventListener('click', () => dom.modal.classList.add('hidden'));
+    
+    dom.csvInput.addEventListener('change', handleCsvUpload);
+    
+    dom.btnClearCache.addEventListener('click', () => {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        state.huntedMap.clear();
+        updateModalStatus();
+        render(); // Update table counts
+    });
+
+    // Sorting headers
+    dom.headers.forEach(th => {
+        th.addEventListener('click', () => handleSort(th.dataset.col));
+    });
+
+    // Timer
+    setInterval(updateSpots, REFRESH_INTERVAL);
+}
+
+// --- Data Fetching & Processing ---
+
+function fetchPrefectures() {
+    // Use embedded data instead of fetch to prevent CORS/Network errors
+    state.prefectures = EMBEDDED_PREFECTURES;
+    console.log("Loaded embedded prefecture data");
+}
+
+async function updateSpots() {
+    dom.status.textContent = "Updating spots...";
+    try {
+        const res = await fetch(API_SPOTS);
+        if (!res.ok) throw new Error("API Error");
+        let rawSpots = await res.json();
+        
+        // Process Data Pipeline
+        state.spots = await processSpots(rawSpots);
+        
+        // Sorting logic application
+        sortSpots();
+
+        dom.status.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+        render();
+    } catch (e) {
+        dom.status.textContent = "Update failed";
+        console.error(e);
+    }
+}
+
+async function processSpots(spots) {
+    // Process spots sequentially to prevent API rate limiting/blocking.
+    // Parallel requests (Promise.all) often cause 429 errors or network failures with POTA API.
+    
+    const processed = [];
+
+    for (const spot of spots) {
+        // Clone to avoid mutation of raw if needed later
+        const s = { ...spot };
+
+        // 1. QSOs Check
+        const huntedCount = state.huntedMap.get(s.reference);
+        s.qsos = huntedCount !== undefined ? huntedCount : 0;
+
+        // 2. Park Info (Async)
+        // Fetch details individually. This is slower but reliable.
+        if (s.reference.startsWith('JP-')) {
+            const parkInfo = await getParkInfo(s.reference);
+            if (parkInfo && parkInfo.parkComments && parkInfo.parkComments.trim() !== "") {
+                s.name = parkInfo.parkComments; // Replace name with Japanese comment
+            }
+        }
+
+        // 3. Prefecture Replacement
+        if (s.locationDesc && s.locationDesc.startsWith('JP-')) {
+            const codes = s.locationDesc.split(',');
+            const names = codes.map(code => {
+                const pref = state.prefectures.find(p => p.locationDesc === code.trim());
+                return pref ? pref.都道府県名 : code;
+            });
+            s.locationDesc = names.join(', ');
+        }
+
+        // 4. QRT Comment Check
+        if (s.comments && s.comments.toUpperCase().includes("QRT")) {
+            s.mode = `> ${s.mode}`;
+        }
+
+        processed.push(s);
+    }
+
+    return processed;
+}
+
+// Cache wrapper for Park Info
+async function getParkInfo(ref) {
+    if (state.parkCache.has(ref)) {
+        return state.parkCache.get(ref);
+    }
+
+    try {
+        // Fetch from API
+        const res = await fetch(`${API_PARK_REF_BASE}${ref}`);
+        if (res.ok) {
+            const data = await res.json();
+            state.parkCache.set(ref, data);
+            return data;
+        }
+    } catch (e) {
+        console.warn(`Failed to fetch park info for ${ref}`, e);
+    }
+    return null;
+}
+
+// --- Sorting ---
+
+function sortSpots() {
+    // Initial requirement: Frequency Asc, then Mode Desc
+    // The user also wants column sorting.
+    // If user hasn't clicked headers, apply default: Freq Asc -> Mode Desc.
+    // Wait, the requirement says "Initial sort: frequency asc, then mode desc".
+    
+    // We will use a generic sort function that checks state.sortCol
+    state.spots.sort((a, b) => {
+        const valA = a[state.sortCol];
+        const valB = b[state.sortCol];
+
+        let result = 0;
+        
+        // Numeric check for Frequency/QSOs
+        if (state.sortCol === 'frequency' || state.sortCol === 'qsos') {
+            result = parseFloat(valA) - parseFloat(valB);
+        } else {
+            // String comparison
+            result = String(valA).localeCompare(String(valB));
+        }
+
+        // Direction
+        if (!state.sortAsc) result *= -1;
+
+        // Stability / Secondary Sort
+        if (result === 0) {
+            // If values equal, maintain previous order or fallback to Frequency Asc for stability
+             return parseFloat(a.frequency) - parseFloat(b.frequency);
+        }
+        
+        return result;
+    });
+
+    // Special case for Initial Load logic required by prompt:
+    // "Initial sort: frequency asc, then mode desc"
+    // Since my generic sorter handles one col, let's just ensure default state matches requirement.
+    // Note: To strictly follow "Freq Asc THEN Mode Desc" as a composite sort:
+    if (state.sortCol === 'frequency') {
+         state.spots.sort((a, b) => {
+            const freqDiff = parseFloat(a.frequency) - parseFloat(b.frequency);
+            if (freqDiff !== 0) return state.sortAsc ? freqDiff : -freqDiff;
+            // Secondary: Mode Descending
+            return String(b.mode).localeCompare(String(a.mode));
+         });
+    }
+}
+
+function handleSort(col) {
+    if (state.sortCol === col) {
+        state.sortAsc = !state.sortAsc; // Toggle
+    } else {
+        state.sortCol = col;
+        state.sortAsc = true; // Default asc for new col
+    }
+    sortSpots();
+    render();
+}
+
+// --- Rendering ---
+
+function render() {
+    // Filter
+    let displaySpots = state.spots;
+    if (state.isJapanOnly) {
+        displaySpots = displaySpots.filter(s => s.reference.startsWith('JP-'));
+    }
+
+    // Split
+    const digitalModes = ['FT8', 'FT4'];
+    const digitalSpots = [];
+    const otherSpots = [];
+    
+    // Set for Summary
+    const digitalActivators = new Set();
+
+    displaySpots.forEach(s => {
+        const modeClean = s.mode.replace('> ', '').trim(); // Handle QRT prefix for grouping
+        if (digitalModes.includes(modeClean)) {
+            digitalSpots.push(s);
+            digitalActivators.add(s.activator);
+        } else {
+            otherSpots.push(s);
+        }
+    });
+
+    // Render Tables
+    renderTable(dom.tables.digital, digitalSpots);
+    renderTable(dom.tables.other, otherSpots);
+
+    // Render Summary
+    if (digitalActivators.size > 0 && state.isJapanOnly) {
+         // Prompt says: "Show summary in toggle ON (Japan info)". 
+         // Actually prompt says "Toggle ON.. filter Japan... Summary: FT8/4 activators".
+         // I'll show it if there's data.
+         dom.summary.textContent = Array.from(digitalActivators).join(', ');
+         dom.summary.classList.remove('hidden');
+    } else if (digitalActivators.size > 0 && !state.isJapanOnly) {
+         dom.summary.textContent = Array.from(digitalActivators).join(', ');
+         dom.summary.classList.remove('hidden');
+    } else {
+         dom.summary.classList.add('hidden');
+    }
+}
+
+function renderTable(tbody, spots) {
+    tbody.innerHTML = '';
+    spots.forEach(s => {
+        const tr = document.createElement('tr');
+        
+        // Columns: mode, frequency, activator, reference, name, locationDesc, qsos
+        const html = `
+            <td class="col-mode">${s.mode}</td>
+            <td class="col-freq">${s.frequency}</td>
+            <td class="col-call">${s.activator}</td>
+            <td class="col-ref">${s.reference}</td>
+            <td class="col-name">${s.name || ''}</td>
+            <td class="col-loc">${s.locationDesc || ''}</td>
+            <td class="col-qsos">${s.qsos}</td>
+        `;
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
+    });
+}
+
+// --- CSV & Maintenance Logic ---
+
+function loadHuntedDataFromStorage() {
+    const jsonStr = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (jsonStr) {
+        try {
+            const parsed = JSON.parse(jsonStr);
+            // Convert back to map
+            state.huntedMap = new Map(parsed);
+        } catch (e) {
+            console.error("Storage corrupt", e);
+        }
+    }
+}
+
+function updateModalStatus() {
+    if (state.huntedMap.size > 0) {
+        dom.cacheStatusInd.className = "status-indicator status-blue";
+        dom.cacheStatusText.textContent = `Cached: ${state.huntedMap.size} records`;
+    } else {
+        dom.cacheStatusInd.className = "status-indicator status-red";
+        dom.cacheStatusText.textContent = "Cache: Empty";
+    }
+}
+
+function handleCsvUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+        const text = evt.target.result;
+        parseAndStoreCsv(text);
+    };
+    reader.readAsText(file);
+}
+
+function parseAndStoreCsv(csvText) {
+    // Simple CSV parser
+    // Assuming Standard POTA Export format: "DX Entity","Location",...,"Reference",...,"QSOs"
+    
+    const lines = csvText.split(/\r?\n/);
+    if (lines.length < 2) return;
+
+    // Find indices from header
+    // Use a regex to handle quoted headers properly
+    // Header: "DX Entity","Location","HASC","Reference","Park Name","First QSO Date","QSOs"
+    const headerLine = lines[0];
+    const headers = parseCsvLine(headerLine);
+    
+    const refIndex = headers.indexOf('Reference');
+    const qsosIndex = headers.indexOf('QSOs');
+
+    if (refIndex === -1 || qsosIndex === -1) {
+        // alertをカスタムモーダルに変更することを推奨
+        // 今回はシンプルにconsole.errorとreturn
+        console.error("Invalid CSV format. Missing 'Reference' or 'QSOs' column.");
+        return;
+    }
+
+    const tempMap = new Map();
+
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const cols = parseCsvLine(line);
+        if (cols.length > refIndex) {
+            const ref = cols[refIndex];
+            const qsos = parseInt(cols[qsosIndex]) || 0;
+            tempMap.set(ref, qsos);
+        }
+    }
+
+    state.huntedMap = tempMap;
+    
+    // Save to LocalStorage (Map to Array for JSON)
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(Array.from(state.huntedMap.entries())));
+    
+    updateModalStatus();
+    // Refresh the list to apply new QSO numbers
+    updateSpots();
+    // alertをカスタムモーダルに変更することを推奨
+    console.log(`Imported ${tempMap.size} records.`);
+    dom.csvInput.value = ''; // Reset input
+}
+
+// Helper to handle CSV lines with quotes
+function parseCsvLine(line) {
+    const result = [];
+    let current = '';
+    let inQuote = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            inQuote = !inQuote;
+        } else if (char === ',' && !inQuote) {
+            result.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    result.push(current);
+    
+    // Remove surrounding quotes from values
+    return result.map(val => val.replace(/^"|"$/g, '').trim());
+}
+
+// Start App
+window.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
