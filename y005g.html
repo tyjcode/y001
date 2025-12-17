@@ -15,6 +15,7 @@
             --accent-color: #4caf50;
             --border-color: #333;
             --highlight-color: #ff9800;
+            --error-color: #f44336;
         }
 
         body {
@@ -172,6 +173,7 @@
 
         /* Status Bar */
         #app-status { margin-left: auto; font-size: 0.8rem; color: #888; }
+        .status-error { color: var(--error-color); font-weight: bold; }
         
     </style>
 </head>
@@ -302,6 +304,8 @@ const API_PARK_REF_BASE = "https://api.pota.app/park/";
 const HUNTED_DATA_STORAGE_KEY = "y005_hunted_data";
 const PARK_CACHE_STORAGE_KEY = "y005_park_cache"; // New key for park details
 const REFRESH_INTERVAL = 60000; // 1 minute
+const MAX_RETRIES = 3; // APIリトライ回数
+const BASE_DELAY = 1000; // リトライの基本遅延 (ms)
 
 // Embedded Prefecture Data (Fallback/Primary to avoid fetch errors)
 // Includes both numeric (JP-01) and letter (JP-HK) codes for robustness.
@@ -397,6 +401,46 @@ const dom = {
     headers: document.querySelectorAll('th')
 };
 
+// --- Utility Functions ---
+
+/**
+ * 遅延関数 (Promiseベース)
+ * @param {number} ms - 遅延時間（ミリ秒）
+ */
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * 指数関数的バックオフを使用してAPIからデータを取得します。
+ * @param {string} url - 取得するAPIのURL
+ * @param {number} maxRetries - 最大リトライ回数
+ * @returns {Promise<Response>} APIレスポンス
+ */
+async function fetchWithRetry(url, maxRetries = MAX_RETRIES) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const response = await fetch(url);
+            if (response.ok) {
+                return response;
+            }
+            // HTTPエラー (4xx, 5xx) の場合もリトライ
+            console.warn(`Attempt ${i + 1} failed for ${url} with status ${response.status}. Retrying...`);
+        } catch (error) {
+            // ネットワークエラー (TypeError: Failed to fetch) の場合もリトライ
+            console.warn(`Attempt ${i + 1} failed for ${url} with error: ${error.message}. Retrying...`);
+        }
+
+        // 最終リトライでない場合、遅延（指数関数的バックオフ）
+        if (i < maxRetries - 1) {
+            const delayTime = BASE_DELAY * Math.pow(2, i) + Math.floor(Math.random() * 500); // 1s, 2s, 4s + jitter
+            await delay(delayTime);
+        }
+    }
+    // 最大リトライ回数を超えた場合はエラーをスロー
+    throw new Error(`Failed to fetch ${url} after ${maxRetries} attempts.`);
+}
+
 // --- Initialization ---
 async function init() {
     loadHuntedDataFromStorage();
@@ -461,9 +505,17 @@ function fetchPrefectures() {
 
 async function updateSpots() {
     dom.status.textContent = "Updating spots...";
+    dom.status.classList.remove('status-error');
+
     try {
-        const res = await fetch(API_SPOTS);
-        if (!res.ok) throw new Error("API Error");
+        // fetchWithRetryを使用してAPI呼び出しを置き換え
+        const res = await fetchWithRetry(API_SPOTS);
+        
+        // fetchWithRetryが成功した場合はresponse.okのはずだが念のためチェック
+        if (!res.ok) {
+             throw new Error(`API returned status ${res.status}`);
+        }
+
         let rawSpots = await res.json();
         
         // Process Data Pipeline
@@ -475,8 +527,9 @@ async function updateSpots() {
         dom.status.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
         render();
     } catch (e) {
-        dom.status.textContent = "Update failed";
-        console.error(e);
+        dom.status.textContent = `Update failed: ${e.message || 'Network error'}`;
+        dom.status.classList.add('status-error');
+        console.error("Failed to update spots:", e);
     }
 }
 
@@ -496,6 +549,7 @@ async function processSpots(spots) {
 
         // 2. Park Info (Cache/Async Fetch)
         if (s.reference.startsWith('JP-')) {
+            // getParkInfoもfetchWithRetryを使うように修正
             const parkInfo = await getParkInfo(s.reference);
             
             if (parkInfo) {
@@ -550,19 +604,18 @@ async function getParkInfo(ref) {
         return state.parkCache.get(ref);
     }
 
-    // 2. Fallback to API fetch
+    // 2. Fallback to API fetch with retry
     try {
         console.log(`Fetching park info for ${ref} from API...`);
-        const res = await fetch(`${API_PARK_REF_BASE}${ref}`);
+        const res = await fetchWithRetry(`${API_PARK_REF_BASE}${ref}`);
+        
         if (res.ok) {
             const data = await res.json();
-            // Note: We don't save to cache here. It's handled in processSpots() 
-            // after the entire list iteration to ensure the name replacement works 
-            // for the current spot list and minimize storage writes.
             return data;
         }
     } catch (e) {
-        console.warn(`Failed to fetch park info for ${ref} from API`, e);
+        // fetchWithRetry内でエラー処理済み。ここでは警告のみ
+        console.warn(`Failed to fetch park info for ${ref} after retries: ${e.message}`);
     }
     return null;
 }
