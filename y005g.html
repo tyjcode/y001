@@ -634,9 +634,17 @@ function render() {
 
     displaySpots.forEach(s => {
         const modeClean = s.mode.replace('> ', '').trim(); // Handle QRT prefix for grouping
+        
+        // QRTチェック
+        const isQRT = s.mode.startsWith('> '); 
+
         if (digitalModes.includes(modeClean)) {
             digitalSpots.push(s);
-            digitalActivators.add(s.activator);
+            
+            // サマリーロジック: QRTのアクティベーターは除外する
+            if (!isQRT) {
+                digitalActivators.add(s.activator);
+            }
         } else {
             otherSpots.push(s);
         }
@@ -672,13 +680,7 @@ function renderTable(tbody, spots) {
             <td class="col-qsos">${s.qsos}</td>
         `;
         tr.innerHTML = html;
-        // ハンティング済み (QSOs > 0) の場合の背景色強調を削除
-        /*
-        if (s.qsos > 0) {
-            tr.style.backgroundColor = '#4a2608'; // Darker amber/brown
-            tr.style.color = '#fff';
-        }
-        */
+        // ハンティング済み (QSOs > 0) の場合の背景色強調は削除済み
         tbody.appendChild(tr);
     });
 }
