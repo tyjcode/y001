@@ -166,6 +166,7 @@
         }
         .status-red { background-color: #f44336; }
         .status-blue { background-color: #2196f3; }
+        .status-green { background-color: #4caf50; }
         
         .close-btn { float: right; cursor: pointer; font-size: 1.5em; line-height: 0.5; }
 
@@ -244,19 +245,40 @@
         <div class="modal-header">Maintenance / Settings</div>
         
         <div class="modal-body">
-            <p>
-                <span id="cache-status-indicator" class="status-indicator status-red"></span>
-                <span id="cache-status-text">Hunted Data Cache: Empty</span>
-            </p>
-            
-            <div style="margin-top: 15px; border-top: 1px solid #444; padding-top:10px;">
+            <!-- ハンティング済みの公園情報（LocalStorage）のステータス -->
+            <div style="border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px;">
+                <p style="margin: 0 0 5px 0;">
+                    <span id="hunted-cache-status-indicator" class="status-indicator status-red"></span>
+                    <span id="hunted-cache-status-text">Hunted Data Cache: Empty</span>
+                    <br>
+                    <span id="hunted-park-count" class="text-small" style="margin-left: 17px;">
+                        登録公園数: 0 件
+                    </span>
+                </p>
+                <button id="btn-clear-hunted-cache" style="background-color: #d32f2f; margin-top: 5px;">Clear Hunted Cache</button>
+            </div>
+
+            <!-- 公園詳細キャッシュ（LocalStorage）のステータス -->
+            <div style="border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px;">
+                <p style="margin: 0 0 5px 0;">
+                    <span id="park-cache-status-indicator" class="status-indicator status-red"></span>
+                    <span id="park-cache-status-text">Park Detail Cache: Empty</span>
+                    <br>
+                    <span id="park-detail-count" class="text-small" style="margin-left: 17px;">
+                        キャッシュされた公園詳細: 0 件
+                    </span>
+                </p>
+                <button id="btn-clear-park-cache" style="background-color: #d32f2f; margin-top: 5px;">Clear Park Detail Cache</button>
+            </div>
+
+            <!-- CSVインポート -->
+            <div style="margin-top: 15px; padding-top:10px;">
                 <label style="display:block; margin-bottom:5px;">Load "hunter_parks.csv":</label>
                 <input type="file" id="csv-file-input" accept=".csv">
-                <button id="btn-clear-cache" style="margin-top: 10px; background-color: #d32f2f;">Clear Cache</button>
             </div>
 
             <p class="text-small" style="margin-top: 15px; line-height: 1.4;">
-                My Stats / Hunted Parks / [EXPORT CSV]ボタンで、ダウンロードしたファイル
+                My Stats / Hunted Parks / [EXPORT CSV]ボタンで、ダウンロードしたファイルをインポートします。
             </p>
         </div>
     </div>
@@ -271,8 +293,9 @@
 // --- Constants & Config ---
 const API_SPOTS = "https://api.pota.app/spot/activator";
 const API_PARK_REF_BASE = "https://api.pota.app/park/";
-// API_PREFECTURES is replaced by embedded data to prevent CORS errors
-const LOCAL_STORAGE_KEY = "y005_hunted_data";
+// Local Storage Keys
+const HUNTED_DATA_STORAGE_KEY = "y005_hunted_data";
+const PARK_CACHE_STORAGE_KEY = "y005_park_cache"; // New key for park details
 const REFRESH_INTERVAL = 60000; // 1 minute
 
 // Embedded Prefecture Data (Fallback/Primary to avoid fetch errors)
@@ -283,7 +306,7 @@ const EMBEDDED_PREFECTURES = [
     { "locationDesc": "JP-IW", "都道府県名": "岩手県" },
     { "locationDesc": "JP-MG", "都道府県名": "宮城県" },
     { "locationDesc": "JP-AK", "都道府県名": "秋田県" },
-    { "locationDesc": "JP-YT", "都道府県名": "山形県" }, // 修正: JP-Y -> JP-YT
+    { "locationDesc": "JP-YT", "都道府県名": "山形県" }, 
     { "locationDesc": "JP-FS", "都道府県名": "福島県" },
     { "locationDesc": "JP-IB", "都道府県名": "茨城県" },
     { "locationDesc": "JP-TC", "都道府県名": "栃木県" },
@@ -297,12 +320,12 @@ const EMBEDDED_PREFECTURES = [
     { "locationDesc": "JP-IS", "都道府県名": "石川県" },
     { "locationDesc": "JP-FI", "都道府県名": "福井県" },
     { "locationDesc": "JP-YN", "都道府県名": "山梨県" },
-    { "locationDesc": "JP-NN", "都道府県名": "長野県" }, // 修正: JP-NA -> JP-NN
+    { "locationDesc": "JP-NN", "都道府県名": "長野県" }, 
     { "locationDesc": "JP-GF", "都道府県名": "岐阜県" },
     { "locationDesc": "JP-SZ", "都道府県名": "静岡県" },
     { "locationDesc": "JP-AI", "都道府県名": "愛知県" },
     { "locationDesc": "JP-ME", "都道府県名": "三重県" },
-    { "locationDesc": "JP-SH", "都道府県名": "滋賀県" }, // 修正: JP-SI -> JP-SH
+    { "locationDesc": "JP-SH", "都道府県名": "滋賀県" }, 
     { "locationDesc": "JP-KY", "都道府県名": "京都府" },
     { "locationDesc": "JP-OS", "都道府県名": "大阪府" },
     { "locationDesc": "JP-HG", "都道府県名": "兵庫県" },
@@ -312,27 +335,27 @@ const EMBEDDED_PREFECTURES = [
     { "locationDesc": "JP-SM", "都道府県名": "島根県" },
     { "locationDesc": "JP-OY", "都道府県名": "岡山県" },
     { "locationDesc": "JP-HS", "都道府県名": "広島県" },
-    { "locationDesc": "JP-YC", "都道府県名": "山口県" }, // 修正: JP-YA -> JP-YC
+    { "locationDesc": "JP-YC", "都道府県名": "山口県" }, 
     { "locationDesc": "JP-TS", "都道府県名": "徳島県" },
-    { "locationDesc": "JP-KG", "都道府県名": "香川県" }, // 修正: JP-KA -> JP-KG (添付ファイル準拠)
+    { "locationDesc": "JP-KG", "都道府県名": "香川県" }, 
     { "locationDesc": "JP-EH", "都道府県名": "愛媛県" },
-    { "locationDesc": "JP-KC", "都道府県名": "高知県" }, // 修正: JP-KO -> JP-KC
+    { "locationDesc": "JP-KC", "都道府県名": "高知県" }, 
     { "locationDesc": "JP-FO", "都道府県名": "福岡県" },
     { "locationDesc": "JP-SG", "都道府県名": "佐賀県" },
     { "locationDesc": "JP-NS", "都道府県名": "長崎県" },
     { "locationDesc": "JP-KM", "都道府県名": "熊本県" },
-    { "locationDesc": "JP-OT", "都道府県名": "大分県" }, // 修正: JP-OI -> JP-OT
+    { "locationDesc": "JP-OT", "都道府県名": "大分県" }, 
     { "locationDesc": "JP-MZ", "都道府県名": "宮崎県" },
-    { "locationDesc": "JP-KS", "都道府県名": "鹿児島県" }, // 修正: JP-KG -> JP-KS
+    { "locationDesc": "JP-KS", "都道府県名": "鹿児島県" }, 
     { "locationDesc": "JP-ON", "都道府県名": "沖縄県" }
 ];
 
 // --- State Management ---
 const state = {
     spots: [],
-    huntedMap: new Map(), // Ref -> QSOs
+    huntedMap: new Map(), // Ref -> QSOs (LocalStorageに保存されるハンティング済みデータ)
     prefectures: [], // Array of pref objects
-    parkCache: new Map(), // Ref -> ParkDetails
+    parkCache: new Map(), // Ref -> ParkDetails (LocalStorageに保存される公園詳細キャッシュ)
     isJapanOnly: true,
     sortCol: 'frequency',
     sortAsc: true, // true for Asc, false for Desc. Default Freq is Asc.
@@ -353,15 +376,27 @@ const dom = {
     modal: document.getElementById('maintenance-modal'),
     modalClose: document.getElementById('modal-close'),
     csvInput: document.getElementById('csv-file-input'),
-    cacheStatusInd: document.getElementById('cache-status-indicator'),
-    cacheStatusText: document.getElementById('cache-status-text'),
-    btnClearCache: document.getElementById('btn-clear-cache'),
+    
+    // Hunted Data Elements
+    huntedCacheStatusInd: document.getElementById('hunted-cache-status-indicator'),
+    huntedCacheStatusText: document.getElementById('hunted-cache-status-text'),
+    huntedParkCount: document.getElementById('hunted-park-count'),
+    btnClearHuntedCache: document.getElementById('btn-clear-hunted-cache'),
+
+    // Park Cache Elements (New)
+    parkCacheStatusInd: document.getElementById('park-cache-status-indicator'),
+    parkCacheStatusText: document.getElementById('park-cache-status-text'),
+    parkDetailCount: document.getElementById('park-detail-count'),
+    btnClearParkCache: document.getElementById('btn-clear-park-cache'),
+    
     headers: document.querySelectorAll('th')
 };
 
 // --- Initialization ---
 async function init() {
     loadHuntedDataFromStorage();
+    loadParkCacheFromStorage(); // New: Load park details cache
+    
     // Using synchronous load for embedded data
     fetchPrefectures(); 
     
@@ -377,7 +412,7 @@ async function init() {
     dom.btnRefresh.addEventListener('click', updateSpots);
     
     dom.btnMaint.addEventListener('click', () => {
-        updateModalStatus();
+        updateModalStatus(); // ダイアログ表示前にステータスを更新
         dom.modal.classList.remove('hidden');
     });
     
@@ -385,11 +420,21 @@ async function init() {
     
     dom.csvInput.addEventListener('change', handleCsvUpload);
     
-    dom.btnClearCache.addEventListener('click', () => {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
+    // Hunted Cache Clear
+    dom.btnClearHuntedCache.addEventListener('click', () => {
+        localStorage.removeItem(HUNTED_DATA_STORAGE_KEY);
         state.huntedMap.clear();
-        updateModalStatus();
-        render(); // Update table counts
+        updateModalStatus(); 
+        render(); 
+    });
+
+    // Park Cache Clear (New)
+    dom.btnClearParkCache.addEventListener('click', () => {
+        localStorage.removeItem(PARK_CACHE_STORAGE_KEY);
+        state.parkCache.clear();
+        updateModalStatus(); 
+        // 公園名が消えるので、スポット情報の再取得も行う
+        updateSpots(); 
     });
 
     // Sorting headers
@@ -432,24 +477,33 @@ async function updateSpots() {
 
 async function processSpots(spots) {
     // Process spots sequentially to prevent API rate limiting/blocking.
-    // Parallel requests (Promise.all) often cause 429 errors or network failures with POTA API.
     
     const processed = [];
+    const newParksToCache = new Map();
+    let parksUpdated = false;
 
     for (const spot of spots) {
-        // Clone to avoid mutation of raw if needed later
         const s = { ...spot };
 
         // 1. QSOs Check
         const huntedCount = state.huntedMap.get(s.reference);
         s.qsos = huntedCount !== undefined ? huntedCount : 0;
 
-        // 2. Park Info (Async)
-        // Fetch details individually. This is slower but reliable.
+        // 2. Park Info (Cache/Async Fetch)
         if (s.reference.startsWith('JP-')) {
             const parkInfo = await getParkInfo(s.reference);
-            if (parkInfo && parkInfo.parkComments && parkInfo.parkComments.trim() !== "") {
-                s.name = parkInfo.parkComments; // Replace name with Japanese comment
+            
+            if (parkInfo) {
+                if (parkInfo.parkComments && parkInfo.parkComments.trim() !== "") {
+                    s.name = parkInfo.parkComments; // Replace name with Japanese comment
+                }
+
+                // Check if this information was fetched from the network (not from state.parkCache)
+                if (!state.parkCache.has(s.reference)) {
+                    // This park was just fetched via API, mark for saving
+                    newParksToCache.set(s.reference, parkInfo);
+                    parksUpdated = true;
+                }
             }
         }
 
@@ -470,26 +524,40 @@ async function processSpots(spots) {
 
         processed.push(s);
     }
+    
+    // Save any newly fetched park details to cache
+    if (parksUpdated) {
+        // Merge new parks into state.parkCache
+        newParksToCache.forEach((value, key) => {
+            state.parkCache.set(key, value);
+        });
+        saveParkCacheToStorage();
+    }
+
 
     return processed;
 }
 
 // Cache wrapper for Park Info
 async function getParkInfo(ref) {
+    // 1. Check in-memory cache
     if (state.parkCache.has(ref)) {
         return state.parkCache.get(ref);
     }
 
+    // 2. Fallback to API fetch
     try {
-        // Fetch from API
+        console.log(`Fetching park info for ${ref} from API...`);
         const res = await fetch(`${API_PARK_REF_BASE}${ref}`);
         if (res.ok) {
             const data = await res.json();
-            state.parkCache.set(ref, data);
+            // Note: We don't save to cache here. It's handled in processSpots() 
+            // after the entire list iteration to ensure the name replacement works 
+            // for the current spot list and minimize storage writes.
             return data;
         }
     } catch (e) {
-        console.warn(`Failed to fetch park info for ${ref}`, e);
+        console.warn(`Failed to fetch park info for ${ref} from API`, e);
     }
     return null;
 }
@@ -497,11 +565,6 @@ async function getParkInfo(ref) {
 // --- Sorting ---
 
 function sortSpots() {
-    // Initial requirement: Frequency Asc, then Mode Desc
-    // The user also wants column sorting.
-    // If user hasn't clicked headers, apply default: Freq Asc -> Mode Desc.
-    // Wait, the requirement says "Initial sort: frequency asc, then mode desc".
-    
     // We will use a generic sort function that checks state.sortCol
     state.spots.sort((a, b) => {
         const valA = a[state.sortCol];
@@ -522,7 +585,7 @@ function sortSpots() {
 
         // Stability / Secondary Sort
         if (result === 0) {
-            // If values equal, maintain previous order or fallback to Frequency Asc for stability
+            // If values equal, fallback to Frequency Asc for stability
              return parseFloat(a.frequency) - parseFloat(b.frequency);
         }
         
@@ -531,8 +594,6 @@ function sortSpots() {
 
     // Special case for Initial Load logic required by prompt:
     // "Initial sort: frequency asc, then mode desc"
-    // Since my generic sorter handles one col, let's just ensure default state matches requirement.
-    // Note: To strictly follow "Freq Asc THEN Mode Desc" as a composite sort:
     if (state.sortCol === 'frequency') {
          state.spots.sort((a, b) => {
             const freqDiff = parseFloat(a.frequency) - parseFloat(b.frequency);
@@ -586,14 +647,9 @@ function render() {
     renderTable(dom.tables.other, otherSpots);
 
     // Render Summary
-    if (digitalActivators.size > 0 && state.isJapanOnly) {
-         // Prompt says: "Show summary in toggle ON (Japan info)". 
-         // Actually prompt says "Toggle ON.. filter Japan... Summary: FT8/4 activators".
-         // I'll show it if there's data.
-         dom.summary.textContent = Array.from(digitalActivators).join(', ');
-         dom.summary.classList.remove('hidden');
-    } else if (digitalActivators.size > 0 && !state.isJapanOnly) {
-         dom.summary.textContent = Array.from(digitalActivators).join(', ');
+    if (digitalActivators.size > 0) {
+         // 区切り文字からスペースを削除 (カンマのみ)
+         dom.summary.textContent = Array.from(digitalActivators).join(',');
          dom.summary.classList.remove('hidden');
     } else {
          dom.summary.classList.add('hidden');
@@ -616,33 +672,83 @@ function renderTable(tbody, spots) {
             <td class="col-qsos">${s.qsos}</td>
         `;
         tr.innerHTML = html;
+        // ハンティング済み (QSOs > 0) の場合は背景を少し強調
+        if (s.qsos > 0) {
+            tr.style.backgroundColor = '#4a2608'; /* Darker amber/brown */
+            tr.style.color = '#fff';
+        }
         tbody.appendChild(tr);
     });
 }
 
-// --- CSV & Maintenance Logic ---
+// --- LocalStorage Logic ---
 
+// --- 1. Hunted Data (QSOs) ---
 function loadHuntedDataFromStorage() {
-    const jsonStr = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const jsonStr = localStorage.getItem(HUNTED_DATA_STORAGE_KEY);
     if (jsonStr) {
         try {
             const parsed = JSON.parse(jsonStr);
-            // Convert back to map
             state.huntedMap = new Map(parsed);
         } catch (e) {
-            console.error("Storage corrupt", e);
+            console.error("Hunted Data Storage corrupt", e);
         }
+    }
+    updateModalStatus();
+}
+
+// --- 2. Park Detail Cache (Japanese Names) ---
+
+function loadParkCacheFromStorage() {
+    const jsonStr = localStorage.getItem(PARK_CACHE_STORAGE_KEY);
+    if (jsonStr) {
+        try {
+            const parsed = JSON.parse(jsonStr);
+            state.parkCache = new Map(parsed);
+            console.log(`Loaded ${state.parkCache.size} park details from cache.`);
+        } catch (e) {
+            console.error("Park Cache Storage corrupt", e);
+        }
+    }
+    updateModalStatus();
+}
+
+function saveParkCacheToStorage() {
+    try {
+        // Map to Array for JSON serialization
+        localStorage.setItem(PARK_CACHE_STORAGE_KEY, JSON.stringify(Array.from(state.parkCache.entries())));
+        console.log(`Saved ${state.parkCache.size} park details to cache.`);
+        updateModalStatus();
+    } catch (e) {
+        console.error("Failed to save park cache to storage", e);
     }
 }
 
+// --- Maintenance Logic ---
+
 function updateModalStatus() {
-    if (state.huntedMap.size > 0) {
-        dom.cacheStatusInd.className = "status-indicator status-blue";
-        dom.cacheStatusText.textContent = `Cached: ${state.huntedMap.size} records`;
+    const huntedCount = state.huntedMap.size;
+    const parkCacheCount = state.parkCache.size;
+    
+    // 1. Hunted Cache Status
+    if (huntedCount > 0) {
+        dom.huntedCacheStatusInd.className = "status-indicator status-blue";
+        dom.huntedCacheStatusText.textContent = `Hunted Data Cache: Found`;
     } else {
-        dom.cacheStatusInd.className = "status-indicator status-red";
-        dom.cacheStatusText.textContent = "Cache: Empty";
+        dom.huntedCacheStatusInd.className = "status-indicator status-red";
+        dom.huntedCacheStatusText.textContent = "Hunted Data Cache: Empty";
     }
+    dom.huntedParkCount.textContent = `登録公園数: ${huntedCount} 件`;
+
+    // 2. Park Cache Status (New)
+    if (parkCacheCount > 0) {
+        dom.parkCacheStatusInd.className = "status-indicator status-green";
+        dom.parkCacheStatusText.textContent = `Park Detail Cache: Found`;
+    } else {
+        dom.parkCacheStatusInd.className = "status-indicator status-red";
+        dom.parkCacheStatusText.textContent = "Park Detail Cache: Empty";
+    }
+    dom.parkDetailCount.textContent = `キャッシュされた公園詳細: ${parkCacheCount} 件`;
 }
 
 function handleCsvUpload(e) {
@@ -674,8 +780,6 @@ function parseAndStoreCsv(csvText) {
     const qsosIndex = headers.indexOf('QSOs');
 
     if (refIndex === -1 || qsosIndex === -1) {
-        // alertをカスタムモーダルに変更することを推奨
-        // 今回はシンプルにconsole.errorとreturn
         console.error("Invalid CSV format. Missing 'Reference' or 'QSOs' column.");
         return;
     }
@@ -697,13 +801,12 @@ function parseAndStoreCsv(csvText) {
     state.huntedMap = tempMap;
     
     // Save to LocalStorage (Map to Array for JSON)
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(Array.from(state.huntedMap.entries())));
+    localStorage.setItem(HUNTED_DATA_STORAGE_KEY, JSON.stringify(Array.from(state.huntedMap.entries())));
     
     updateModalStatus();
     // Refresh the list to apply new QSO numbers
     updateSpots();
-    // alertをカスタムモーダルに変更することを推奨
-    console.log(`Imported ${tempMap.size} records.`);
+    console.log(`Imported ${tempMap.size} hunted records.`);
     dom.csvInput.value = ''; // Reset input
 }
 
