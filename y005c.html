@@ -43,13 +43,13 @@
   <div class="muted">FT8 / FT4</div>
   <table id="tblDigital">
     <thead><tr>
+      <th data-k="qsos">qsos</th>
       <th data-k="mode">mode</th>
       <th data-k="frequency">frequency</th>
       <th data-k="activator">activator</th>
       <th data-k="reference">reference</th>
       <th data-k="name">name</th>
       <th data-k="locationDesc">location</th>
-      <th data-k="qsos">qsos</th>
     </tr></thead>
     <tbody></tbody>
   </table>
@@ -59,13 +59,13 @@
   <div class="muted">Others</div>
   <table id="tblOther">
     <thead><tr>
+      <th data-k="qsos">qsos</th>
       <th data-k="mode">mode</th>
       <th data-k="frequency">frequency</th>
       <th data-k="activator">activator</th>
       <th data-k="reference">reference</th>
       <th data-k="name">name</th>
       <th data-k="locationDesc">location</th>
-      <th data-k="qsos">qsos</th>
     </tr></thead>
     <tbody></tbody>
   </table>
@@ -178,7 +178,7 @@ function render(tbl, rows){
   tb.innerHTML='';
   rows.forEach(r=>{
     const tr=document.createElement('tr');
-    ['mode','frequency','activator','reference','name','locationDesc','qsos'].forEach(k=>{
+    ['qsos','mode','frequency','activator','reference','name','locationDesc'].forEach(k=>{
       const td=document.createElement('td'); td.textContent=r[k]; if(k==='qsos') td.className='qsos'; tr.appendChild(td);
     });
     tb.appendChild(tr);

@@ -135,14 +135,14 @@
         tr:hover { background-color: #333; }
 
         /* Column specific adjustments */
-        /* width指定を削除し、コンテンツに応じた幅にする */
+        /* 太字を削除し、標準のフォントウェイトに戻す */
+        .col-qsos { text-align: right; } 
         .col-mode { } 
         .col-freq { text-align: right; font-family: monospace; }
         .col-call { font-weight: bold; color: #81d4fa; }
         .col-ref { } 
         .col-name { } 
         .col-loc { }
-        .col-qsos { text-align: right; } 
         
         /* Modal */
         .modal {
@@ -211,13 +211,13 @@
         <table id="table-digital">
             <thead>
                 <tr>
+                    <th data-col="qsos">QSOs</th><!-- 先頭に配置 -->
                     <th data-col="mode">Mode</th>
                     <th data-col="frequency">Freq</th>
                     <th data-col="activator">Activator</th>
                     <th data-col="reference">Ref</th>
                     <th data-col="name">Name</th>
                     <th data-col="locationDesc">Loc</th>
-                    <th data-col="qsos">QSOs</th>
                 </tr>
             </thead>
             <tbody><!-- Rows --></tbody>
@@ -229,13 +229,13 @@
         <table id="table-other">
             <thead>
                 <tr>
+                    <th data-col="qsos">QSOs</th><!-- 先頭に配置 -->
                     <th data-col="mode">Mode</th>
                     <th data-col="frequency">Freq</th>
                     <th data-col="activator">Activator</th>
                     <th data-col="reference">Ref</th>
                     <th data-col="name">Name</th>
                     <th data-col="locationDesc">Loc</th>
-                    <th data-col="qsos">QSOs</th>
                 </tr>
             </thead>
             <tbody><!-- Rows --></div>
@@ -667,7 +667,8 @@ function handleSort(col) {
         state.sortAsc = !state.sortAsc; // Toggle
     } else {
         state.sortCol = col;
-        state.sortAsc = true; // Default asc for new col
+        // QSOsの列を新しくソートする場合、QSOsは降順 (Desc) が直感的なため、デフォルトをfalseに設定
+        state.sortAsc = (col === 'qsos') ? false : true; 
     }
     sortSpots();
     render();
@@ -727,15 +728,16 @@ function renderTable(tbody, spots) {
     spots.forEach(s => {
         const tr = document.createElement('tr');
         
-        // Columns: mode, frequency, activator, reference, name, locationDesc, qsos
+        // Columns: qsos, mode, frequency, activator, reference, name, locationDesc
+        // 順番をQSOsからに変更
         const html = `
+            <td class="col-qsos">${s.qsos}</td> 
             <td class="col-mode">${s.mode}</td>
             <td class="col-freq">${s.frequency}</td>
             <td class="col-call">${s.activator}</td>
             <td class="col-ref">${s.reference}</td>
             <td class="col-name">${s.name || ''}</td>
             <td class="col-loc">${s.locationDesc || ''}</td>
-            <td class="col-qsos">${s.qsos}</td>
         `;
         tr.innerHTML = html;
         // ハンティング済み (QSOs > 0) の場合の背景色強調は削除済み
