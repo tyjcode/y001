@@ -178,6 +178,7 @@
 <body>
 
 <header class="flex-row flex-between">
+    <!-- 左側のコントロールグループ (タイトル、トグル、更新ボタン、メンテナンスボタン) -->
     <div class="flex-row">
         <h1>y005 Hunt Tool</h1>
         
@@ -188,11 +189,13 @@
         </label>
         
         <button id="btn-refresh" title="Reload Spots">↻</button>
+        <!-- Maintenanceボタンを更新ボタンの右隣に移動 -->
+        <button id="btn-maintenance">Maintenance</button>
     </div>
 
+    <!-- 右側のステータス表示 -->
     <div class="flex-row">
         <span id="app-status">Initializing...</span>
-        <button id="btn-maintenance">Maintenance</button>
     </div>
 </header>
 
