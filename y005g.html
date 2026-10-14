@@ -116,7 +116,7 @@
             text-align: left;
             /* 罫線を削除 */
             border-bottom: none; 
-            /* 全ての列で折り返しを禁止し、文字数に応じた幅を確保する */
+            /* 折り返しを禁止。Name / Locは表示幅を制限する */
             white-space: nowrap; 
         }
 
@@ -129,6 +129,8 @@
         }
         th:hover { background-color: #3a3a3a; }
         th::after { content: ' \21F3'; opacity: 0.3; font-size: 0.8em; } /* Sort icon placeholder */
+        th.sort-asc::after { content: ' ↑'; opacity: 1; }
+        th.sort-desc::after { content: ' ↓'; opacity: 1; }
 
         tr:nth-child(even) { background-color: var(--table-row-bg); }
         tr:nth-child(odd) { background-color: var(--table-row-alt); }
@@ -141,8 +143,29 @@
         .col-freq { text-align: right; font-family: monospace; }
         .col-call { font-weight: bold; color: #81d4fa; }
         .col-ref { } 
-        .col-name { } 
-        .col-loc { }
+        .table-container td.col-name,
+        .table-container td.col-loc { overflow: hidden; text-overflow: ellipsis; }
+        .table-container td.col-name { max-width: clamp(140px, 32vw, 320px); }
+        .table-container td.col-loc { max-width: clamp(90px, 20vw, 180px); }
+
+        .spot-tooltip {
+            position: fixed;
+            z-index: 20;
+            box-sizing: border-box;
+            width: max-content;
+            max-width: min(520px, calc(100vw - 20px));
+            padding: 6px 8px;
+            border: 1px solid #666;
+            border-radius: 4px;
+            background: #252525;
+            color: var(--text-main);
+            box-shadow: 0 4px 14px #000;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+            font-size: 0.95rem;
+            line-height: 1.35;
+            pointer-events: none;
+        }
         
         /* Modal */
         .modal {
@@ -238,7 +261,7 @@
                     <th data-col="locationDesc">Loc</th>
                 </tr>
             </thead>
-            <tbody><!-- Rows --></div>
+            <tbody><!-- Rows --></tbody>
         </table>
     </div>
 </div>
@@ -290,6 +313,8 @@
         </div>
     </div>
 </div>
+
+<div id="spot-tooltip" class="spot-tooltip hidden" role="tooltip"></div>
 
 <script>
 /**
@@ -366,8 +391,8 @@ const state = {
     prefectures: [], // Array of pref objects
     parkCache: new Map(), // Ref -> ParkDetails (LocalStorageに保存される公園詳細キャッシュ)
     isJapanOnly: true,
-    sortCol: 'frequency',
-    sortAsc: true, // true for Asc, false for Desc. Default Freq is Asc.
+    sortCol: 'qsos',
+    sortAsc: true, // Initial sort: QSOs ascending.
     lastUpdate: null
 };
 
@@ -398,10 +423,44 @@ const dom = {
     parkDetailCount: document.getElementById('park-detail-count'),
     btnClearParkCache: document.getElementById('btn-clear-park-cache'),
     
-    headers: document.querySelectorAll('th')
+    headers: document.querySelectorAll('#tables-area th[data-col]'),
+    spotTooltip: document.getElementById('spot-tooltip')
 };
 
 // --- Utility Functions ---
+
+function numericValue(value) {
+    const number = Number.parseFloat(value);
+    return Number.isFinite(number) ? number : 0;
+}
+
+function tooltipValue(value) {
+    if (value === null || value === undefined || value === '') return '—';
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+}
+
+function spotTooltipText(spot) {
+    const lastHeard = spot.lastHeard ?? spot.last_heard ?? spot.spotTime ?? spot.history;
+    return `${tooltipValue(spot.comments ?? spot.comment)}\n${tooltipValue(lastHeard)}`;
+}
+
+function hideSpotTooltip() {
+    dom.spotTooltip.classList.add('hidden');
+}
+
+function showSpotTooltip(event, spot) {
+    const cell = event.target.closest('td');
+    const fullValueCell = cell && (cell.classList.contains('col-name') || cell.classList.contains('col-loc'));
+    dom.spotTooltip.textContent = fullValueCell ? cell.textContent : spotTooltipText(spot);
+    dom.spotTooltip.classList.remove('hidden');
+    const margin = 10;
+    const bounds = dom.spotTooltip.getBoundingClientRect();
+    const left = Math.min(event.clientX + 44, window.innerWidth - bounds.width - margin);
+    const top = Math.min(event.clientY + 16, window.innerHeight - bounds.height - margin);
+    dom.spotTooltip.style.left = `${Math.max(margin, left)}px`;
+    dom.spotTooltip.style.top = `${Math.max(margin, top)}px`;
+}
 
 /**
  * 遅延関数 (Promiseベース)
@@ -448,6 +507,7 @@ async function init() {
     
     // Using synchronous load for embedded data
     fetchPrefectures(); 
+    render();
     
     // Initial fetch
     await updateSpots();
@@ -461,6 +521,7 @@ async function init() {
     dom.btnRefresh.addEventListener('click', updateSpots);
     
     dom.btnMaint.addEventListener('click', () => {
+        hideSpotTooltip();
         updateModalStatus(); // ダイアログ表示前にステータスを更新
         dom.modal.classList.remove('hidden');
     });
@@ -521,9 +582,6 @@ async function updateSpots() {
         // Process Data Pipeline
         state.spots = await processSpots(rawSpots);
         
-        // Sorting logic application
-        sortSpots();
-
         dom.status.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
         render();
     } catch (e) {
@@ -623,43 +681,21 @@ async function getParkInfo(ref) {
 // --- Sorting ---
 
 function sortSpots() {
-    // We will use a generic sort function that checks state.sortCol
+    const column = state.sortCol;
+    const direction = state.sortAsc ? 1 : -1;
     state.spots.sort((a, b) => {
-        const valA = a[state.sortCol];
-        const valB = b[state.sortCol];
-
-        let result = 0;
-        
-        // Numeric check for Frequency/QSOs
-        if (state.sortCol === 'frequency' || state.sortCol === 'qsos') {
-            result = parseFloat(valA) - parseFloat(valB);
+        let result;
+        if (column === 'frequency' || column === 'qsos') {
+            result = numericValue(a[column]) - numericValue(b[column]);
         } else {
-            // String comparison
-            result = String(valA).localeCompare(String(valB));
+            result = String(a[column] ?? '').localeCompare(String(b[column] ?? ''), 'ja');
         }
-
-        // Direction
-        if (!state.sortAsc) result *= -1;
-
-        // Stability / Secondary Sort
-        if (result === 0) {
-            // If values equal, fallback to Frequency Asc for stability
-             return parseFloat(a.frequency) - parseFloat(b.frequency);
+        if (!result && column === 'frequency') {
+            result = String(b.mode ?? '').localeCompare(String(a.mode ?? ''));
         }
-        
-        return result;
+        if (!result) result = numericValue(a.frequency) - numericValue(b.frequency);
+        return result * direction;
     });
-
-    // Special case for Initial Load logic required by prompt:
-    // "Initial sort: frequency asc, then mode desc"
-    if (state.sortCol === 'frequency') {
-         state.spots.sort((a, b) => {
-            const freqDiff = parseFloat(a.frequency) - parseFloat(b.frequency);
-            if (freqDiff !== 0) return state.sortAsc ? freqDiff : -freqDiff;
-            // Secondary: Mode Descending
-            return String(b.mode).localeCompare(String(a.mode));
-         });
-    }
 }
 
 function handleSort(col) {
@@ -667,16 +703,23 @@ function handleSort(col) {
         state.sortAsc = !state.sortAsc; // Toggle
     } else {
         state.sortCol = col;
-        // QSOsの列を新しくソートする場合、QSOsは降順 (Desc) が直感的なため、デフォルトをfalseに設定
-        state.sortAsc = (col === 'qsos') ? false : true; 
+        // A newly selected column always starts in ascending order.
+        state.sortAsc = true;
     }
-    sortSpots();
     render();
 }
 
 // --- Rendering ---
 
 function render() {
+    hideSpotTooltip();
+    sortSpots();
+    dom.headers.forEach(header => {
+        const selected = header.dataset.col === state.sortCol;
+        header.classList.toggle('sort-asc', selected && state.sortAsc);
+        header.classList.toggle('sort-desc', selected && !state.sortAsc);
+        header.setAttribute('aria-sort', selected ? (state.sortAsc ? 'ascending' : 'descending') : 'none');
+    });
     // Filter
     let displaySpots = state.spots;
     if (state.isJapanOnly) {
@@ -724,22 +767,22 @@ function render() {
 }
 
 function renderTable(tbody, spots) {
-    tbody.innerHTML = '';
+    tbody.replaceChildren();
+    const columns = [
+        ['qsos', 'col-qsos'], ['mode', 'col-mode'], ['frequency', 'col-freq'],
+        ['activator', 'col-call'], ['reference', 'col-ref'],
+        ['name', 'col-name'], ['locationDesc', 'col-loc']
+    ];
     spots.forEach(s => {
         const tr = document.createElement('tr');
-        
-        // Columns: qsos, mode, frequency, activator, reference, name, locationDesc
-        // 順番をQSOsからに変更
-        const html = `
-            <td class="col-qsos">${s.qsos}</td> 
-            <td class="col-mode">${s.mode}</td>
-            <td class="col-freq">${s.frequency}</td>
-            <td class="col-call">${s.activator}</td>
-            <td class="col-ref">${s.reference}</td>
-            <td class="col-name">${s.name || ''}</td>
-            <td class="col-loc">${s.locationDesc || ''}</td>
-        `;
-        tr.innerHTML = html;
+        for (const [column, className] of columns) {
+            const cell = tr.insertCell();
+            cell.className = className;
+            cell.textContent = s[column] ?? '';
+        }
+        tr.addEventListener('mouseenter', event => showSpotTooltip(event, s));
+        tr.addEventListener('mousemove', event => showSpotTooltip(event, s));
+        tr.addEventListener('mouseleave', hideSpotTooltip);
         // ハンティング済み (QSOs > 0) の場合の背景色強調は削除済み
         tbody.appendChild(tr);
     });
