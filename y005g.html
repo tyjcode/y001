@@ -53,6 +53,10 @@
         }
         button:hover { background-color: #444; }
 
+        .csv-import-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .csv-import-controls input { flex: 1 1 200px; min-width: 0; max-width: 100%; }
+        .csv-import-controls button { flex-shrink: 0; }
+
         /* Toggle Switch */
         .toggle-container {
             display: inline-flex;
@@ -303,12 +307,15 @@
 
             <!-- CSVインポート -->
             <div style="margin-top: 15px; padding-top:10px;">
-                <label style="display:block; margin-bottom:5px;">Load "hunter_parks.csv":</label>
-                <input type="file" id="csv-file-input" accept=".csv">
+                <label for="csv-file-input" style="display:block; margin-bottom:5px;">Load "hunter_parks.csv":</label>
+                <div class="csv-import-controls">
+                    <input type="file" id="csv-file-input" accept=".csv">
+                    <button id="open-pota-stats" type="button">POTA My Statsを開く</button>
+                </div>
             </div>
 
             <p class="text-small" style="margin-top: 15px; line-height: 1.4;">
-                My Stats / Hunted Parks / [EXPORT CSV]ボタンで、ダウンロードしたファイルをインポートします。
+                統計データを開き「ハント済み公園」を選択し、「CSVをエキスポート」で、ダウンロードしたファイルをインポートします。
             </p>
         </div>
     </div>
@@ -410,6 +417,7 @@ const dom = {
     modal: document.getElementById('maintenance-modal'),
     modalClose: document.getElementById('modal-close'),
     csvInput: document.getElementById('csv-file-input'),
+    btnPotaStats: document.getElementById('open-pota-stats'),
     
     // Hunted Data Elements
     huntedCacheStatusInd: document.getElementById('hunted-cache-status-indicator'),
@@ -529,6 +537,9 @@ async function init() {
     dom.modalClose.addEventListener('click', () => dom.modal.classList.add('hidden'));
     
     dom.csvInput.addEventListener('change', handleCsvUpload);
+    dom.btnPotaStats.addEventListener('click', () => {
+        window.open('https://pota.app/#/user/stats', '_blank', 'noopener,noreferrer');
+    });
     
     // Hunted Cache Clear
     dom.btnClearHuntedCache.addEventListener('click', () => {
